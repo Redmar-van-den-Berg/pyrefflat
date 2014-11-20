@@ -3,6 +3,7 @@ __author__ = 'ahbbollen'
 import argparse
 import math
 import vcf
+import json
 
 import parser as refparser
 
@@ -59,20 +60,62 @@ def asCSV(inputf, outputf, reff, sep, mode):
                     vcf_records = vcfReader.fetch(str(chr), int(start), int(stop))
                 except ValueError:
                     vcf_records = []
+                #print vcf_records
                 DPS = []
                 for v_record in vcf_records:
                     DPS.append(v_record.genotype(sample)['DP'])
                 line = [gene, transcript, chr, n, start, stop]
                 if len(DPS) > 0:
                     line.append(sum(DPS)/len(DPS))
+                    #print DPS
                 else:
                     line.append(0)
                 line = map(str, line)
                 bedWriter.write(bytes(sep.join(line) + "\n"))
 
+    bedWriter.close()
+    refReader.close()
+
 
 def asJSON(inputf, outputf, reff, mode):
-    return True
+    vcfReader = vcf.Reader(filename=inputf)
+    jsonWriter = open(outputf, 'wb')
+    refReader = open(reff, 'rb')
+
+    jdict = {}
+
+    for sample in vcfReader.samples:
+        jdict[sample] = {}
+
+        for line in refReader:
+            record = refparser.Record(line, reff)
+            gene = record.gene
+            transcript = record.transcript
+            jdict[sample][gene] = {"transcript": transcript, "exons" : []}
+            for exon in record.exons:
+                chr = exon.chr
+                start = exon.start
+                stop = exon.stop
+                n = exon.number
+                try:
+                    vcf_records = vcfReader.fetch(str(chr), int(start), int(stop))
+                except:
+                    vcf_records = []
+                DPS = []
+                for v_record in vcf_records:
+                    DPS.append(v_record.genotype(sample)['DP'])
+                if len(DPS) > 0:
+                    coverage = sum(DPS)/len(DPS)
+                else:
+                    coverage = 0
+                exondict = {"chr": chr, "start": start, "stop" : stop, "number": n, "coverage" : coverage}
+                jdict[sample][gene]["exons"].append(exondict)
+
+    jsonWriter.write(json.dumps(jdict))
+    jsonWriter.close()
+    refReader.close()
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
