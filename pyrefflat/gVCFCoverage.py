@@ -108,10 +108,10 @@ def asJSON(inputf, outputf, reff, mode):
                     coverage = sum(DPS)/len(DPS)
                 else:
                     coverage = 0
-                exondict = {"chr": chr, "start": start, "stop" : stop, "number": n, "coverage" : coverage}
+                exondict = {"chr": chr, "start": int(start), "stop" : int(stop), "number": n, "coverage" : coverage}
                 jdict[sample][gene]["exons"].append(exondict)
 
-    jsonWriter.write(json.dumps(jdict))
+    jsonWriter.write(json.dumps(jdict, indent=4))
     jsonWriter.close()
     refReader.close()
 
