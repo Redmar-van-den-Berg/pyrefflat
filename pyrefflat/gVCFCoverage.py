@@ -115,7 +115,7 @@ def asJSON(inputf, outputf, reff, mode):
                 jdict[gene] = {}
                 jdict[gene][transcript] = transcriptdict
 
-    jsonWriter.write(json.dumps(jdict, indent=4, ))
+    jsonWriter.write(json.dumps(jdict, indent=4, sort_keys=True))
     jsonWriter.close()
     refReader.close()
 
