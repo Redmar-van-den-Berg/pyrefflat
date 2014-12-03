@@ -85,13 +85,11 @@ def asJSON(inputf, outputf, reff, mode):
     jdict = {}
 
     for sample in vcfReader.samples:
-        jdict[sample] = {}
-
         for line in refReader:
             record = refparser.Record(line, reff)
             gene = record.gene
             transcript = record.transcript
-            jdict[sample][gene] = {"transcript": transcript, "exons" : []}
+            transcriptdict = {}
             for exon in record.exons:
                 chr = exon.chr
                 start = exon.start
@@ -108,10 +106,16 @@ def asJSON(inputf, outputf, reff, mode):
                     coverage = sum(DPS)/len(DPS)
                 else:
                     coverage = 0
-                exondict = {"chr": chr, "start": int(start), "stop" : int(stop), "number": n, "coverage" : coverage}
-                jdict[sample][gene]["exons"].append(exondict)
+                exondict = {"chr": chr, "start": int(start), "stop" : int(stop), "number": n, "coverage" : coverage, 'sample': sample}
+                transcriptdict[n] = exondict
 
-    jsonWriter.write(json.dumps(jdict, indent=4))
+            try:
+                jdict[gene][transcript] = transcriptdict
+            except KeyError:
+                jdict[gene] = {}
+                jdict[gene][transcript] = transcriptdict
+
+    jsonWriter.write(json.dumps(jdict, indent=4, ))
     jsonWriter.close()
     refReader.close()
 
