@@ -7,7 +7,57 @@ import json
 
 import parser as refparser
 
-def asBedgraph(inputf, outputf, reff, mode):
+def _calc_gqx(record, sample):
+    """
+    This function calculates gqx values
+    GQX = min(GQ, QUAL)
+    :param record: a pyvcf record
+    :param sample: string containing the sample
+    return: float of gqx (or gq if QUAL doesnt exist)
+    """
+    gq = float(record.genotype(sample)['GQ'])
+    if record.QUAL is not None:
+        qual = float(record.QUAL)
+        return min(gq, qual)
+    else:
+        return gq
+
+def _get_coverage(reader, exon, gqx, min_val, perc, sample):
+    """
+    This function gets coverage for an exon
+    :param reader: a pyvcf Reader object
+    :param exon: a pyrefflat Exon object
+    :param gqx: Boolean whether to output gqx values
+    :param min_gqx: mimimal value, gqx or dp, (only combined with perc)
+    :param perc: Boolean whether to output attained percentage of min_gqx
+    :param sample: String with sample to be queried
+    return: float with coverage
+    """
+    try:
+        records = reader.fetch(str(exon.chr), int(exon.start), int(exon.stop))
+    except ValueError:
+        return 0.0
+
+    if len(records) == 0:
+        return 0.0
+
+    covs = []
+    for record in records:
+        if gqx:
+            val = _calc_gqx(record, sample)
+        else:
+            val = record.genotype(sample)['DP']
+        covs.append(val)
+
+    covs = map(float, covs)
+    if not perc:
+        return sum(covs)/len(covs)
+    else:
+        passes = [x for x in covs if x >= min_val]
+        percentage = (float(len(passes))/float(len(covs))) * 100
+        return percentage
+
+def asBedgraph(inputf, outputf, reff, mode, gqx, min_val, perc):
     vcfReader = vcf.Reader(filename=inputf)
     bedWriter = open(outputf, 'wb')
     refReader = open(reff, 'rb')
@@ -18,27 +68,16 @@ def asBedgraph(inputf, outputf, reff, mode):
         for line in refReader:
             record = refparser.Record(line, reff)
             for exon in record.exons:
-                try:
-                    vcf_records = vcfReader.fetch(str(exon.chr), int(exon.start), int(exon.stop))
-                except ValueError:
-                    vcf_records = []
-                DPS = []
-                for v_record in vcf_records:
-                    DPS.append(v_record.genotype(sample)['DP'])
+                cov = _get_coverage(vcfReader, exon, gqx, min_val, perc, sample)
                 bedline = [exon.chr, exon.start, exon.stop]
-                if len(DPS) > 0:
-                    bedline.append(sum(DPS)/len(DPS))
-                    bedline = map(str, bedline)
-                    bedWriter.write(bytes("\t".join(bedline) + "\n"))
-                else:
-                    bedline.append(0)
-                    bedline = map(str, bedline)
-                    bedWriter.write(bytes("\t".join(bedline) + "\n"))
+                bedline.append(cov)
+                bedline = map(str, bedline)
+                bedWriter.write(bytes("\t".join(bedline) + "\n"))
 
     bedWriter.close()
     refReader.close()
 
-def asCSV(inputf, outputf, reff, sep, mode):
+def asCSV(inputf, outputf, reff, sep, mode, gqx, min_val, perc):
     vcfReader = vcf.Reader(filename=inputf)
     bedWriter = open(outputf, 'wb')
     refReader = open(reff, 'rb')
@@ -56,20 +95,9 @@ def asCSV(inputf, outputf, reff, sep, mode):
                 start = exon.start
                 stop = exon.stop
                 n = exon.number
-                try:
-                    vcf_records = vcfReader.fetch(str(chr), int(start), int(stop))
-                except ValueError:
-                    vcf_records = []
-                #print vcf_records
-                DPS = []
-                for v_record in vcf_records:
-                    DPS.append(v_record.genotype(sample)['DP'])
                 line = [gene, transcript, chr, n, start, stop]
-                if len(DPS) > 0:
-                    line.append(sum(DPS)/len(DPS))
-                    #print DPS
-                else:
-                    line.append(0)
+                cov = _get_coverage(vcfReader, exon, gqx, min_val, perc, sample)
+                line.append(cov)
                 line = map(str, line)
                 bedWriter.write(bytes(sep.join(line) + "\n"))
 
@@ -77,7 +105,7 @@ def asCSV(inputf, outputf, reff, sep, mode):
     refReader.close()
 
 
-def asJSON(inputf, outputf, reff, mode):
+def asJSON(inputf, outputf, reff, mode, gqx, min_val, perc):
     vcfReader = vcf.Reader(filename=inputf)
     jsonWriter = open(outputf, 'wb')
     refReader = open(reff, 'rb')
@@ -95,17 +123,7 @@ def asJSON(inputf, outputf, reff, mode):
                 start = exon.start
                 stop = exon.stop
                 n = exon.number
-                try:
-                    vcf_records = vcfReader.fetch(str(chr), int(start), int(stop))
-                except:
-                    vcf_records = []
-                DPS = []
-                for v_record in vcf_records:
-                    DPS.append(v_record.genotype(sample)['DP'])
-                if len(DPS) > 0:
-                    coverage = sum(DPS)/len(DPS)
-                else:
-                    coverage = 0
+                coverage = _get_coverage(vcfReader, exon, gqx, min_val, perc, sample)
                 exondict = {"chr": chr, "start": int(start), "stop" : int(stop), "number": n, "coverage" : coverage, 'sample': sample}
                 transcriptdict[n] = exondict
 
@@ -133,17 +151,22 @@ if __name__ == '__main__':
 
     # optional arguments
     parser.add_argument('--tab-delimited', action='store_true', help='Output CSV as TSV')
+    parser.add_argument('-g', '--gqx', action='store_true', help="Output gqx values")
+    parser.add_argument('p', '--perc', action='store_true', help="Output % of --min-value")
+
+    # other arguments
+    parser.add_argument('--min-value', nargs='?', const=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
 
     args = parser.parse_args()
 
     if args.output_mode == 'bedgraph':
-        asBedgraph(args.input, args.output, args.refflat, args.mode)
+        asBedgraph(args.input, args.output, args.refflat, args.mode, args.gqx, args.min_value, args.perc)
     elif args.output_mode == 'csv':
         if args.tab_delimited:
             sep = "\t"
         else:
             sep = ","
-        asCSV(args.input, args.output, args.refflat, sep, args.mode)
+        asCSV(args.input, args.output, args.refflat, sep, args.mode, args.gqx, args.min_value, args.perc)
     elif args.output_mode == 'json':
-        asJSON(args.input, args.output, args.refflat, args.mode)
+        asJSON(args.input, args.output, args.refflat, args.mode, args.gqx, args.min_value, args.perc)
 
