@@ -38,8 +38,8 @@ def _get_coverage(reader, exon, gqx, min_val, perc, sample):
     except ValueError:
         return 0.0
 
-    if len(records) == 0:
-        return 0.0
+    #if len(records) == 0:
+    #    return 0.0
 
     covs = []
     for record in records:
@@ -50,6 +50,9 @@ def _get_coverage(reader, exon, gqx, min_val, perc, sample):
         covs.append(val)
 
     covs = map(float, covs)
+    if len(covs) == 0:
+        return 0.0
+    
     if not perc:
         return sum(covs)/len(covs)
     else:
@@ -152,7 +155,7 @@ if __name__ == '__main__':
     # optional arguments
     parser.add_argument('--tab-delimited', action='store_true', help='Output CSV as TSV')
     parser.add_argument('-g', '--gqx', action='store_true', help="Output gqx values")
-    parser.add_argument('p', '--perc', action='store_true', help="Output % of --min-value")
+    parser.add_argument('-p', '--perc', action='store_true', help="Output % of --min-value")
 
     # other arguments
     parser.add_argument('--min-value', nargs='?', const=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
