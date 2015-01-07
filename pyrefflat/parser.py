@@ -57,7 +57,7 @@ class Record(object):
 
     @property
     def exonStarts(self):
-        assert str(self._items["exonStarts"]).endsswith(","), "Malformed refFlat line!"
+        assert str(self._items["exonStarts"]).endswith(","), "Malformed refFlat line!"
         starts = str(self._items["exonStarts"]).split(",")
         # remove final unneccesary comma
         if starts[-1] is None:
@@ -126,7 +126,7 @@ class ExonFactory(object):
     def make(self):
         exons = []
         starts = self.items['exonStarts'].split(',')
-        if starts[-1]  == '':
+        if starts[-1] == '':
             starts.pop()
         ends = self.items['exonEnds'].split(',')
         if ends[-1] == '':
