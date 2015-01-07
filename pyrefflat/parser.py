@@ -24,6 +24,22 @@ class Reader(object):
     def __next__(self):
         return self.next()
 
+    def close(self):
+        self._handler.close()
+
+
+class Writer(object):
+    def __init__(self, filename):
+        self._filename = filename
+        self._handler = open(filename, 'wb')
+
+    def write(self, record):
+        self._handler.write(record._line)
+
+    def close(self):
+        self._handler.close()
+
+
 class Record(object):
     def __init__(self, line, filename):
         self._line = line.decode(ENCODING)
