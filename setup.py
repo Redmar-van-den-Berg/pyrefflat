@@ -9,4 +9,5 @@ setup(name="pyrefflat",
       author_email="sander@sndrtj.eu",
       license="MIT",
       packages=['pyrefflat'],
-      zip_safe=False)
+      zip_safe=False,
+      scripts=['bin/bamCoverage', 'bin/gVCFCoverage'])

@@ -4,7 +4,7 @@ import argparse
 import pysam
 # should be
 # from pyrefflat import parser as...
-import parser as refparser
+import pyrefflat.parser as refparser
 
 
 def asBedgraph(args):

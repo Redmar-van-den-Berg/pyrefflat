@@ -5,7 +5,7 @@ import math
 import vcf
 import json
 
-import parser as refparser
+import pyrefflat.parser as refparser
 
 def _calc_gqx(record, sample):
     """
