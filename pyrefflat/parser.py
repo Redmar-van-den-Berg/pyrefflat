@@ -6,6 +6,24 @@ COLUMNS = ["geneName", "name", "chrom", "strand", "txStart", "txEnd",
            "cdsStart", "cdsEnd", "exonCount", "exonStarts", "exonEnds"]
 
 ENCODING = locale.getdefaultlocale()[1]
+
+
+class Reader(object):
+    def __init__(self, filename):
+        self._filename = filename
+        self._handler = open(filename, 'rb')
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        line = self._handler.readline()
+        return Record(line, self._filename)
+
+    # python 3 compatibility
+    def __next__(self):
+        return self.next()
+
 class Record(object):
     def __init__(self, line, filename):
         self._line = line.decode(ENCODING)
