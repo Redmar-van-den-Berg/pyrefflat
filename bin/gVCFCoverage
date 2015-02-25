@@ -60,7 +60,7 @@ def _get_coverage(reader, exon, gqx, min_val, perc, sample):
         percentage = (float(len(passes))/float(len(covs))) * 100
         return percentage
 
-def asBedgraph(inputf, outputf, reff, mode, gqx, min_val, perc, lim, rlim):
+def asBedgraph(inputf, outputf, reff, mode, gqx, min_val, perc, lim, rlim, bp):
     vcfReader = vcf.Reader(filename=inputf)
     bedWriter = open(outputf, 'wb')
     refReader = open(reff, 'rb')
@@ -71,15 +71,27 @@ def asBedgraph(inputf, outputf, reff, mode, gqx, min_val, perc, lim, rlim):
         for line in refReader:
             record = refparser.Record(line, reff)
             for exon in record.exons:
-                cov = _get_coverage(vcfReader, exon, gqx, min_val, perc, sample)
-                if lim and cov < min_val:
-                    continue
-                elif rlim and cov >= min_val:
-                    continue
-                bedline = [exon.chr, exon.start, exon.stop]
-                bedline.append(cov)
-                bedline = map(str, bedline)
-                bedWriter.write(bytes("\t".join(bedline) + "\n"))
+                if not bp:
+                    cov = _get_coverage(vcfReader, exon, gqx, min_val, perc, sample)
+                    if lim and cov < min_val:
+                        continue
+                    elif rlim and cov >= min_val:
+                        continue
+                    bedline = [exon.chr, exon.start, exon.stop]
+                    bedline.append(cov)
+                    bedline = map(str, bedline)
+                    bedWriter.write(bytes("\t".join(bedline) + "\n"))
+                else:
+                    locations = vcfReader.fetch(str(exon.chr), int(exon.start), int(exon.stop))
+                    for loc in locations:
+                        cov = _calc_gqx(loc, sample)
+                        if lim and cov < min_val:
+                            continue
+                        elif rlim and cov >= min_val:
+                            continue
+                        bedline = [loc.CHROM, loc.POS, int(loc.POS)+1, cov]
+                        bedline = map(str, bedline)
+                        bedWriter.write(bytes("\t".join(bedline) + "\n"))
 
     bedWriter.close()
     refReader.close()
@@ -166,6 +178,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--perc', action='store_true', help="Output % of --min-value")
     parser.add_argument('--limit', action='store_true', help="Limit output to just those records at least attaining --min-value")
     parser.add_argument('--reverse-limit', action='store_true', help="Limit output to just those records which do NOT attain --min-value")
+    parser.add_argument('--bp-res', action='store_true', help="Output base-pair resolution")
 
     # other arguments
     parser.add_argument('--min-value', nargs='?', const=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
@@ -178,8 +191,11 @@ if __name__ == '__main__':
     if (args.limit or args.reverse_limit) and args.output_mode == 'json':
         raise ValueError("Cannot use limits with mode JSON")
 
+    if args.bp_res and (args.output_mode == 'json' or args.output_mode == 'csv'):
+        raise ValueError("Mode --bp-res can only be used in concurrence with mode bedgraph")
+
     if args.output_mode == 'bedgraph':
-        asBedgraph(args.input, args.output, args.refflat, args.mode, args.gqx, args.min_value, args.perc, args.limit, args.reverse_limit)
+        asBedgraph(args.input, args.output, args.refflat, args.mode, args.gqx, args.min_value, args.perc, args.limit, args.reverse_limit, args.bp_res)
     elif args.output_mode == 'csv':
         if args.tab_delimited:
             sep = "\t"
