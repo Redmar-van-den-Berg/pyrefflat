@@ -17,7 +17,7 @@ class Reader(object):
         return self
 
     def next(self):
-        line = self._handler.readline()
+        line = self._handler.next()
         return Record(line, self._filename)
 
     # python 3 compatibility
@@ -34,7 +34,7 @@ class Writer(object):
         self._handler = open(filename, 'wb')
 
     def write(self, record):
-        self._handler.write(record._line)
+        self._handler.write(record._line + "\n")
 
     def close(self):
         self._handler.close()
@@ -94,8 +94,8 @@ class Record(object):
         assert str(self._items["exonStarts"]).endswith(","), "Malformed refFlat line!"
         starts = str(self._items["exonStarts"]).split(",")
         # remove final unneccesary comma
-        if starts[-1] is None:
-            starts = starts.pop()
+        if starts[-1] == '':
+            _ = starts.pop()
         return starts
 
     @property
@@ -103,8 +103,8 @@ class Record(object):
         assert str(self._items["exonEnds"]).endswith(","), "Malformed refFlat line!"
         ends = str(self._items["exonEnds"]).split(",")
         # remove final unneccessary comma
-        if ends[-1] is None:
-            ends = ends.pop()
+        if ends[-1] == '':
+            _ = ends.pop()
         return ends
 
     @property
@@ -169,4 +169,3 @@ class ExonFactory(object):
         for i, (s, e) in enumerate(zip(starts, ends)):
             exons.append(Exon(self.items['geneName'], self.items['name'], self.items['chrom'], s, e, i))
         return exons
-

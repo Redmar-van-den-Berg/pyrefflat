@@ -1,0 +1,31 @@
+__author__ = 'ahbbollen'
+
+import argparse
+
+from pyrefflat.parser import Reader, Writer
+from pyrefflat.factories import RecordFactory
+
+def marginize(iname, oname, margin):
+    reader = Reader(iname)
+    writer = Writer(oname)
+
+    for record in reader:
+        factory = RecordFactory(record._items)
+        exonstarts = [int(x) - margin for x in record.exonStarts]
+        exonends = [int(x) + margin for x in record.exonEnds]
+        factory.setattribute("exonStarts", map(str, exonstarts))
+        factory.setattribute("exonEnds", map(str, exonends))
+        writer.write(factory.make())
+
+    reader.close()
+    writer.close()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-I', '--input', required=True, help="Input RefFlat")
+    parser.add_argument('-O', '--output', required=True, help="Output RefFlat")
+    parser.add_argument('--margin', nargs='?', const=0, type=int, help="Margin in bp, defaults to 0")
+
+    args = parser.parse_args()
+    marginize(args.input, args.output, args.margin)

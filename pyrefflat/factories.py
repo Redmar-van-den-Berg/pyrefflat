@@ -1,7 +1,7 @@
 __author__ = 'ahbbollen'
 
 from .parser import Exon, Record
-from .generics import COLUMNS, NO_EXON_COLUMNS
+from .generics import *
 
 class ExonFactory(object):
     """
@@ -25,29 +25,32 @@ class ExonFactory(object):
         return exons
 
 
+
 class RecordFactory(object):
-    def __init__(self, items, filename):
-        self.items = items
-        self._filename = filename
-        self.check()
+    def __init__(self, *args):
+        if len(args) == 1:
+            self.items = args[0]
+            self.line = None
+        elif len(args) > 1:
+            raise TypeError("Too many arguments")
+        else:
+            self.line, self.items = empty_line()
 
     def check(self):
         for column in COLUMNS:
             try:
                 _ = self.items[column]
             except KeyError:
-                raise KeyError("Malformed dictionary! Couldn't find required element {0}".format(column))
+                return False
+        return True
+
+    def setattribute(self, key, value):
+        self.items[key] = value
 
     def make(self):
-        exons = ExonFactory(self.items).make()
-        line = [self.items[x] for x in NO_EXON_COLUMNS]
-        exonstarts = [x.start for x in exons]
-        exonends = [x.stop for x in exons]
-        exonsline = ",".join(exonstarts) + ","
-        exonstline = ",".join(exonends) + ","
-        line += [exonsline]
-        line += [exonstline]
-        r = Record("\t".join(line), self._filename)
+        line = "\t".join([str(self.items[x]) for x in set(COLUMNS) - set(NUMERIC_LIST_COLUMNS)])
+        for c in NUMERIC_LIST_COLUMNS:
+            line += "\t" + ",".join(map(str, self.items[c])) + ","
+        r = Record(line, "internal")
         return r
-
 
