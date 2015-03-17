@@ -22,7 +22,7 @@ def _calc_gqx(record, sample):
     else:
         return gq
 
-def _get_coverage(reader, exon, gqx, min_val, perc, sample):
+def _get_coverage(reader, exon, gqx, min_val, perc, sample, margin):
     """
     This function gets coverage for an exon
     :param reader: a pyvcf Reader object
@@ -31,10 +31,11 @@ def _get_coverage(reader, exon, gqx, min_val, perc, sample):
     :param min_gqx: mimimal value, gqx or dp, (only combined with perc)
     :param perc: Boolean whether to output attained percentage of min_gqx
     :param sample: String with sample to be queried
+    :param margin: margin around record
     return: float with coverage
     """
     try:
-        records = reader.fetch(str(exon.chr), int(exon.start), int(exon.stop))
+        records = reader.fetch(str(exon.chr), int(exon.start) - margin, int(exon.stop) + margin)
     except ValueError:
         return 0.0
 
@@ -76,6 +77,7 @@ class Calculator(object):
         self.bp = kwargs['bp_res']
         self.outmode = kwargs['output_mode']
         self.tab = kwargs['tab_delimited']
+        self.margin = kwargs['margin']
 
         # readers/writers
         self.vcfReader = vcf.Reader(filename=self.inputf)
@@ -104,7 +106,8 @@ class Calculator(object):
                 record = refparser.Record(line, self.reff)
                 for exon in record.exons:
                     if not self.bp:
-                        cov = _get_coverage(self.vcfReader, exon, self.gqx, self.min_val, self.perc, sample)
+                        cov = _get_coverage(self.vcfReader, exon, self.gqx,
+                                            self.min_val, self.perc, sample, self.margin)
                         if self.lim and cov < self.min_val:
                             continue
                         elif self.rlim and cov >= self.min_val:
@@ -114,7 +117,9 @@ class Calculator(object):
                         bedline = map(str, bedline)
                         self.outWriter.write(bytes("\t".join(bedline) + "\n"))
                     else:
-                        locations = self.vcfReader.fetch(str(exon.chr), int(exon.start), int(exon.stop))
+                        locations = self.vcfReader.fetch(str(exon.chr),
+                                                         int(exon.start) - self.margin,
+                                                         int(exon.stop) + self.margin)
                         for loc in locations:
                             cov = _calc_gqx(loc, sample)
                             if self.lim and cov < self.min_val:
@@ -140,7 +145,8 @@ class Calculator(object):
                     start = exon.start
                     stop = exon.stop
                     n = exon.number
-                    coverage = _get_coverage(self.vcfReader, exon, self.gqx, self.min_val, self.perc, sample)
+                    coverage = _get_coverage(self.vcfReader, exon, self.gqx,
+                                             self.min_val, self.perc, sample, self.margin)
                     exondict = {"chr": chr, "start": int(start), "stop": int(stop),
                                 "number": n, "coverage": coverage, 'sample': sample}
                     transcriptdict[n] = exondict
@@ -160,7 +166,8 @@ class Calculator(object):
         else:
             sep = ","
         for sample in self.vcfReader.samples:
-            headerline = "Sample {0}; Gene \t Transcript \t Chr \t Exon number \t Exon start \t Exon stop \t Coverage \n".format(sample)
+            headerline = "Sample {0}; Gene \t Transcript \t Chr \
+             \t Exon number \t Exon start \t Exon stop \t Coverage \n".format(sample)
             self.outWriter.write(bytes(headerline))
 
             for line in self.refReader:
@@ -173,7 +180,8 @@ class Calculator(object):
                     stop = exon.stop
                     n = exon.number
                     line = [gene, transcript, chr, n, start, stop]
-                    cov = _get_coverage(self.vcfReader, exon, self.gqx, self.min_val, self.perc, sample)
+                    cov = _get_coverage(self.vcfReader, exon, self.gqx,
+                                        self.min_val, self.perc, sample, self.margin)
                     if self.lim and cov < self.min_val:
                         continue
                     elif self.rlim and cov >= self.min_val:
@@ -204,6 +212,7 @@ if __name__ == '__main__':
 
     # other arguments
     parser.add_argument('--min-value', nargs='?', const=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
+    parser.add_argument('--margin', nargs='?', const=0, type=int, help="Margin around refflat records. Defaults to 0 (no margin)")
 
     args = parser.parse_args()
 
