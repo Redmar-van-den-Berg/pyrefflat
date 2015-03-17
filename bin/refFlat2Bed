@@ -1,0 +1,22 @@
+__author__ = 'ahbbollen'
+
+import argparse
+
+from pyrefflat.parser import Reader
+
+def convert(iname, oname):
+    with open(oname, "wb") as ohandle:
+        reader = Reader(iname)
+        for record in reader:
+            for exon in record.exons:
+                line = [str(exon.chr), str(exon.start), str(exon.stop)]
+                ohandle.write("\t".join(line) + "\n")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-I', '--input', help="Input refFlat")
+    parser.add_argument('-O', '--output', help="Output BED")
+
+    args = parser.parse_args()
+    convert(args.input, args.output)
