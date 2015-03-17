@@ -48,7 +48,9 @@ class RecordFactory(object):
         self.items[key] = value
 
     def make(self):
-        line = "\t".join([str(self.items[x]) for x in set(COLUMNS) - set(NUMERIC_LIST_COLUMNS)])
+        normal_columns = set(COLUMNS) - set(NUMERIC_LIST_COLUMNS) # <-- remember, this is UNORDERED!
+        line = [str(self.items[x]) for x in COLUMNS if x in normal_columns]
+        line = "\t".join(line)
         for c in NUMERIC_LIST_COLUMNS:
             line += "\t" + ",".join(map(str, self.items[c])) + ","
         r = Record(line, "internal")
