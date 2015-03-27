@@ -9,24 +9,18 @@ from .generics import *
 class ExonFactory(object):
     """
     This class defines a factory for producing Exons
-    Takes the items dictionary of a record
+    Takes the a record
     """
-    def __init__(self, items):
-        self.items = items
+    def __init__(self, record):
+        self.record = record
 
     def make(self):
         exons = []
-        starts = self.items['exonStarts'].split(',')
-        if starts[-1] == '':
-            starts.pop()
-        ends = self.items['exonEnds'].split(',')
-        if ends[-1] == '':
-            ends.pop()
-        assert len(starts) == len(ends), "Supplied items don't match"
-        for i, (s, e) in enumerate(zip(starts, ends)):
-            exons.append(Exon(self.items['geneName'], self.items['name'], self.items['chrom'], s, e, i))
+        for i, (s, e) in enumerate(zip(self.record.exonStarts,
+                                       self.record.exonEnds)):
+            exons.append(Exon(self.record.gene, self.record.transcript,
+                              self.record.chromosome, s, e, i))
         return exons
-
 
 
 class RecordFactory(object):
