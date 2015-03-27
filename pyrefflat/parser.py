@@ -1,3 +1,7 @@
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *
+
 __author__ = 'ahbbollen'
 
 import locale
@@ -17,7 +21,7 @@ class Reader(object):
         return self
 
     def next(self):
-        line = self._handler.next()
+        line = next(self._handler)
         return Record(line, self._filename)
 
     # python 3 compatibility
