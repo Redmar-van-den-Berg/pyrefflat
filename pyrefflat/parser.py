@@ -38,7 +38,7 @@ class Writer(object):
         self._handler = open(filename, 'wb')
 
     def write(self, record):
-        self._handler.write(record._line + "\n")
+        self._handler.write((record._line + "\n").encode(ENCODING))
 
     def close(self):
         self._handler.close()
