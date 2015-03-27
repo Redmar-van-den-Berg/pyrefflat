@@ -100,7 +100,7 @@ class Record(object):
         # remove final unneccesary comma
         if starts[-1] == '':
             _ = starts.pop()
-        return starts
+        return map(int, starts)
 
     @property
     def exonEnds(self):
@@ -109,7 +109,7 @@ class Record(object):
         # remove final unneccessary comma
         if ends[-1] == '':
             _ = ends.pop()
-        return ends
+        return map(int, ends)
 
     @property
     def exons(self):
