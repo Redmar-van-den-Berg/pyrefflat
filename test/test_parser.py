@@ -143,3 +143,38 @@ class TestExon():
     def test_n_type(self, exons):
         for ex in exons:
             assert isinstance(ex.number, int)
+
+    def test_gene_contents(self, exons):
+        for ex in exons:
+            assert (ex.gene == "MLH1")
+
+    def test_name_contents(self, exons):
+        for ex in exons:
+            assert (ex.transcript == "NM_000249")
+
+    def test_chromosome_contents(self, exons):
+        for ex in exons:
+            assert (ex.chr == "chr3")
+
+    def test_start_contents(self, exons):
+        starts = [37034840, 37038109, 37042445, 37045891,
+                  37048481, 37050304, 37053310, 37053501,
+                  37055922, 37058996, 37061800, 37067127,
+                  37070274, 37081676, 37083758, 37089009,
+                  37090007, 37090394, 37091976]
+        for i, ex in enumerate(exons):
+            assert (ex.start == starts[i])
+
+    def test_stop_contents(self, exons):
+        ends = [37035154, 37038200, 37042544, 37045965,
+                37048554, 37050396, 37053353, 37053590,
+                37056035, 37059090, 37061954, 37067498,
+                37070423, 37081785, 37083822, 37089174,
+                37090100, 37090508, 37092337]
+
+        for i, ex in enumerate(exons):
+            assert (ex.stop == ends[i])
+
+    def test_number_contents(self, exons):
+        for i, ex in enumerate(exons):
+            assert (ex.number == i)
