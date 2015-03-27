@@ -8,7 +8,7 @@ It includes a reader and writer object for easy manipulation of refFlat files.
 Installation
 ------------
 
-To install pyrefflat, clone the repository at  https://git.lumc.nl/a.h.b.bollen/pyrefflat
+To install pyrefflat, clone the repository at  https://git.lumc.nl/a.h.b.bollen/pyrefflat .
 Run ``python setup.py install`` to install the module. It is recommended you use a virtual environment.
 
 Usage
@@ -17,6 +17,7 @@ Usage
 Reading refFlat files
 ~~~~~~~~~~~~~~~~~~~~~
 Pyrefflat provides a ``Reader`` object for reading refFLat files.
+
 .. code-block:: python
 
     from pyrefflat import Reader
@@ -26,9 +27,57 @@ A reader is an iterator that returns records. Each record has associated exons.
 E.g., to print the start site of every exon in every record, one would do:
 
 .. code-block:: python
+
     for record in reader:
         for exon in record.exons:
             print exon.start
+
+
+Writing refFlat files
+~~~~~~~~~~~~~~~~~~~~~
+Writing refFlat files is done with the ``Writer`` object, which consumes ``Record``s.
+E.g., to copy a refFlat file using a ``Reader`` and ``Writer`` one could do:
+
+.. code-block:: python
+
+    from pyrefflat import Reader, Writer
+    reader = Reader(filename="original.refFlat")
+    writer = Writer(filename="writer.refFlat")
+
+    for record in reader:
+        writer.write(record)
+    writer.close()
+    reader.close()
+
+
+**NOTE: this part is still in flux, so liable to change!**
+
+New records can be generated using the ``RecordFactory`` object in ``pyrefflat.factories``.
+Initializing a ``RecordFactory`` object without any arguments will result in an empty line.
+If one initializes a ``RecordFactory`` with a ``Record`` object, it will use the ``Record`` as a template.
+Fields can be set by using the ``setattribute()`` method. Fields can be imported from ``pyrefflat.generics``.
+The following creates a record on chromosome 1, with gene ``AAAA``, ranging from position 1 to 1000 and having 1 exon.
+
+.. code-block:: python
+
+    from pyrefflat.factories import RecordFactory
+    from pyrefflat.generics import NUMERIC_COLUMNS, NUMERIC_LIST_COLUMNS, STRING_COLUMNS
+
+    factory = RecordFactory()
+    factory.setattribute("geneName", "AAAA")
+    factory.setattribute("name", "AAAA")
+    factory.setattribute("chrom", 1)
+    factory.setattribute("strand", "+")
+    factory.setattribute("txStart", 1)
+    factory.setattrbiute("txEnd", 1000)
+    factory.setattribute("cdsStart", 1)
+    factory.setattribute("cdsEnd", 1000)
+    factory.setattribute("exonCount", 1)
+    factory.setattribute("exonStarts", [1])
+    factory.setattribute("exonEnds", [1000])
+
+    record = factory.make()
+
 
 Tools
 -----
