@@ -1,5 +1,8 @@
-__author__ = 'ahbbollen'
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *
 
+__author__ = 'ahbbollen'
 from .parser import Exon, Record
 from .generics import *
 
@@ -46,6 +49,56 @@ class RecordFactory(object):
 
     def setattribute(self, key, value):
         self.items[key] = value
+
+    def set_gene(self, gene):
+        assert isinstance(gene, basestring)
+
+        self.items["geneName"] = gene
+        self.items["name"] = gene
+
+    def set_chromosome(self, chrom):
+        assert isinstance(chrom, basestring)
+
+        self.items["chrom"] = chrom
+
+    def set_transcription_start(self, txStart):
+        assert isinstance(txStart, int)
+
+        self.items["txStart"] = txStart
+
+    def set_transcription_end(self, txEnd):
+        assert isinstance(txEnd, int)
+
+        self.items["txEnd"] = txEnd
+
+    def set_cds_start(self, cdsStart):
+        assert isinstance(cdsStart, int)
+
+        self.items["cdsStart"] = cdsStart
+
+    def set_cds_end(self, cdsEnd):
+        assert isinstance(cdsEnd, int)
+
+        self.items["cdsEnd"] = cdsEnd
+
+    def set_exon_count(self, exonCount):
+        assert isinstance(exonCount, int)
+
+        self.items["exonCount"] = exonCount
+
+    def set_exon_starts(self, exonStarts):
+        assert isinstance(exonStarts, list)
+        assert isinstance(exonStarts[0], int)
+        assert len(exonStarts) == self.items["exonCount"]
+
+        self.items["exonStarts"] = exonStarts
+
+    def set_exon_ends(self, exonEnds):
+        assert isinstance(exonEnds, list)
+        assert isinstance(exonEnds[0], int)
+        assert len(exonEnds) == self.items["exoNCount"]
+
+        self.items["exonEnds"] == exonEnds
 
     def make(self):
         normal_columns = set(COLUMNS) - set(NUMERIC_LIST_COLUMNS) # <-- remember, this is UNORDERED!
