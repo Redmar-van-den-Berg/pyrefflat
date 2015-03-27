@@ -10,4 +10,4 @@ setup(name="pyrefflat",
       license="MIT",
       packages=['pyrefflat'],
       zip_safe=False,
-      scripts=['bin/bamCoverage', 'bin/gVCFCoverage', 'bin/createMargin', 'bin/refFlat2Bed'])
+      scripts=['bin/gVCFCoverage', 'bin/createMargin', 'bin/refFlat2Bed'])
