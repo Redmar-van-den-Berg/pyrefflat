@@ -73,3 +73,43 @@ class TestRecord():
         for e in record.exonEnds:
             assert isinstance(e, int)
 
+    def test_gene_contents(self, record):
+        assert (record.gene == "MLH1")
+
+    def test_name_contents(self, record):
+        assert (record.transcript == "NM_000249")
+
+    def test_chromosome_contents(self, record):
+        assert (record.chromosome == "chr3")
+
+    def test_strand_contents(self, record):
+        assert (record.strand == "+")
+
+    def test_txstart_contents(self, record):
+        assert (record.txStart == 37034840)
+
+    def test_txend_contents(self, record):
+        assert (record.txEnd == 37092337)
+
+    def test_cdsstart_contents(self, record):
+        assert (record.cdsStart == 37035038)
+
+    def test_cdsend_contents(self, record):
+        assert (record.cdsEnd == 37092144)
+
+    def test_nexons_contents(self, record):
+        assert (record.n_exons == 19)
+
+    def test_exonstarts_contents(self, record):
+        assert (record.exonStarts == [37034840, 37038109, 37042445, 37045891,
+                                      37048481, 37050304, 37053310, 37053501,
+                                      37055922, 37058996, 37061800, 37067127,
+                                      37070274, 37081676, 37083758, 37089009,
+                                      37090007, 37090394, 37091976])
+
+    def test_exonends_contents(self, record):
+        assert (record.exonEnds == [37035154, 37038200, 37042544, 37045965,
+                                    37048554, 37050396, 37053353, 37053590,
+                                    37056035, 37059090, 37061954, 37067498,
+                                    37070423, 37081785, 37083822, 37089174,
+                                    37090100, 37090508, 37092337])
