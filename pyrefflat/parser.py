@@ -5,6 +5,7 @@ from builtins import *
 __author__ = 'ahbbollen'
 
 import locale
+import os.path
 
 COLUMNS = ["geneName", "name", "chrom", "strand", "txStart", "txEnd",
            "cdsStart", "cdsEnd", "exonCount", "exonStarts", "exonEnds"]
@@ -14,7 +15,7 @@ ENCODING = locale.getdefaultlocale()[1]
 
 class Reader(object):
     def __init__(self, filename):
-        self._filename = filename
+        self._filename = os.path.basename(filename)
         self._handler = open(filename, 'rb')
 
     def __iter__(self):

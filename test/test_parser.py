@@ -8,13 +8,13 @@ from pyrefflat.parser import *
 
 class TestReader:
     def test_return(self):
-        r = Reader(filename="data/mini.refFlat")
+        r = Reader(filename="test/data/mini.refFlat")
         re = next(r)
         assert isinstance(re, Record)
 
 @pytest.fixture(scope="module")
 def record():
-    r = Reader(filename="data/mini.refFlat")
+    r = Reader(filename="test/data/mini.refFlat")
     return next(r)
 
 @pytest.fixture(scope="module")
