@@ -17,6 +17,10 @@ def record():
     r = Reader(filename="data/mini.refFlat")
     return next(r)
 
+@pytest.fixture(scope="module")
+def exons(record):
+    return record.exons
+
 class TestRecord():
 
     def test_filename(self, record):
@@ -113,3 +117,29 @@ class TestRecord():
                                     37056035, 37059090, 37061954, 37067498,
                                     37070423, 37081785, 37083822, 37089174,
                                     37090100, 37090508, 37092337])
+
+class TestExon():
+
+    def test_gene_type(self, exons):
+        for ex in exons:
+            assert isinstance(ex.gene, basestring)
+
+    def test_name_type(self, exons):
+        for ex in exons:
+            assert isinstance(ex.transcript, basestring)
+
+    def test_chromosome_type(self, exons):
+        for ex in exons:
+            assert isinstance(ex.chr, basestring)
+
+    def test_start_type(self, exons):
+        for ex in exons:
+            assert isinstance(ex.start, int)
+
+    def test_end_type(self, exons):
+        for ex in exons:
+            assert isinstance(ex.stop, int)
+
+    def test_n_type(self, exons):
+        for ex in exons:
+            assert isinstance(ex.number, int)
