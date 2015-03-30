@@ -26,8 +26,8 @@ class ExonFactory(object):
 class RecordFactory(object):
     def __init__(self, *args):
         if len(args) == 1:
-            self.items = args[0]
-            self.line = None
+            self.items = args[0]._items
+            self.line = args[0]._line
         elif len(args) > 1:
             raise TypeError("Too many arguments")
         else:
@@ -92,14 +92,21 @@ class RecordFactory(object):
         assert isinstance(exonEnds[0], int)
         assert len(exonEnds) == self.items["exoNCount"]
 
-        self.items["exonEnds"] == exonEnds
+        self.items["exonEnds"] = exonEnds
 
     def make(self):
         normal_columns = set(COLUMNS) - set(NUMERIC_LIST_COLUMNS) # <-- remember, this is UNORDERED!
         line = [str(self.items[x]) for x in COLUMNS if x in normal_columns]
         line = "\t".join(line)
         for c in NUMERIC_LIST_COLUMNS:
-            line += "\t" + ",".join(map(str, self.items[c])) + ","
+            if isinstance(self.items[c], list) and all([isinstance(x, int) for x in self.items[c]]):
+                line += "\t" + ",".join(map(str, self.items[c])) + ","
+            elif isinstance(self.items[c], basestring) and self.items[c].endswith(","):
+                line += "\t" + self.items[c]
+            elif isinstance(self.items[c], basestring) and not self.items[c].endswith(","):
+                line += "\t" + self.items[c] + ","
+            else:
+                raise ValueError
         r = Record(line, "internal")
         return r
 
