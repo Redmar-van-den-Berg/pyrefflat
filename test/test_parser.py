@@ -12,6 +12,48 @@ class TestReader:
         re = next(r)
         assert isinstance(re, Record)
 
+    def test_close(self):
+        with pytest.raises(StopIteration):
+            r = Reader(filename="test/data/mini.refFlat")
+            r.close()
+            _ = next(r)
+
+class TestWriter:
+    def test_write(self, writer, record):
+        writer.write(record)
+        writer.close()
+        assert open("test/data/write.refFlat", "rb").\
+                   readline().decode(ENCODING) == "MLH1\tNM_000249\t" \
+                                                  "chr3\t+\t37034840\t" \
+                                                  "37092337\t37035038\t" \
+                                                  "37092144\t19\t" \
+                                                  "37034840,37038109,37042445," \
+                                                  "37045891,37048481,37050304," \
+                                                  "37053310,37053501,37055922," \
+                                                  "37058996,37061800,37067127," \
+                                                  "37070274,37081676,37083758," \
+                                                  "37089009,37090007,37090394," \
+                                                  "37091976," \
+                                                  "\t37035154,37038200,37042544" \
+                                                  ",37045965,37048554,37050396" \
+                                                  ",37053353,37053590,37056035" \
+                                                  ",37059090,37061954,37067498," \
+                                                  "37070423,37081785,37083822," \
+                                                  "37089174,37090100,37090508," \
+                                                  "37092337,\n"
+
+    def test_close(self, writer, record):
+        writer.close()
+        with pytest.raises(ValueError):
+            writer.write(record)
+
+
+
+@pytest.fixture(scope="module")
+def writer():
+    w = Writer(filename="test/data/write.refFlat")
+    return w
+
 @pytest.fixture(scope="module")
 def record():
     r = Reader(filename="test/data/mini.refFlat")

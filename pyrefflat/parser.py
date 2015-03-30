@@ -22,7 +22,10 @@ class Reader(object):
         return self
 
     def next(self):
-        line = next(self._handler)
+        try:
+            line = next(self._handler)
+        except ValueError:
+            raise StopIteration
         return Record(line, self._filename)
 
     # python 3 compatibility
