@@ -97,3 +97,92 @@ class Test_RecordFactory():
         record = factory.make()
         assert record.gene == "MLH1"
 
+    def test_set_gene(self, factory):
+        factory.set_gene("MLH1")
+        assert factory.make().gene == "MLH1"
+
+    def test_set_transcript(self, factory):
+        factory.set_transcript("XM_test")
+        assert factory.make().transcript == "XM_test"
+
+    def test_set_chromosome(self, factory):
+        factory.set_chromosome("chr3")
+        assert factory.make().chromosome == "chr3"
+
+    def test_set_transcription_start(self, factory):
+        factory.set_transcription_start(100)
+        assert factory.make().txStart == 100
+
+    def test_set_transcription_end(self, factory):
+        factory.set_transcription_end(1000)
+        assert factory.make().txEnd == 1000
+
+    def test_set_cds_start(self, factory):
+        factory.set_cds_start(100)
+        assert factory.make().cdsStart == 100
+
+    def test_set_cds_end(self, factory):
+        factory.set_cds_end(1000)
+        assert factory.make().cdsEnd == 1000
+
+    def test_set_exoncount(self, factory):
+        factory.set_exon_count(3)
+        assert factory.make().n_exons == 3
+
+    def test_set_exonstarts(self, factory):
+        factory.set_exon_starts([1, 2, 3])
+        assert factory.make().exonStarts == [1, 2, 3]
+
+    def test_exonends(self, factory):
+        factory.set_exon_ends([2, 3, 4])
+        assert factory.make().exonEnds == [2, 3, 4]
+
+    def test_except_set_gene(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_gene(100)
+
+    def test_except_set_transcript(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_transcript(100)
+
+    def test_except_set_chromosome(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_chromosome(100)
+
+    def test_except_set_txstart(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_transcription_start("100")
+
+    def test_except_set_txend(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_transcription_end("100")
+
+    def test_except_set_cdstart(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_cds_start("100")
+
+    def test_except_set_cdsend(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_cds_end("100")
+
+    def test_except_set_exoncount(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_exon_count("100")
+
+    def test_except_set_exonstart(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_exon_starts("1, 2 ,3")
+
+    def test_except_set_exonstarts_list(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_exon_starts(["1", "2", "3"])
+
+    def test_except_set_exonends(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_exon_ends("2,3,4")
+
+    def test_except_set_exonends_list(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_exon_ends(["2", "3", "4"])
+
+
