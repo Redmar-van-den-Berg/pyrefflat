@@ -48,7 +48,10 @@ class RecordFactory(object):
         assert isinstance(gene, basestring)
 
         self.items["geneName"] = gene
-        self.items["name"] = gene
+
+    def set_transcript(self, name):
+        assert isinstance(name, basestring)
+        self.items["name"] = name
 
     def set_chromosome(self, chrom):
         assert isinstance(chrom, basestring)
@@ -90,7 +93,7 @@ class RecordFactory(object):
     def set_exon_ends(self, exonEnds):
         assert isinstance(exonEnds, list)
         assert isinstance(exonEnds[0], int)
-        assert len(exonEnds) == self.items["exoNCount"]
+        assert len(exonEnds) == self.items["exonCount"]
 
         self.items["exonEnds"] = exonEnds
 
