@@ -35,7 +35,7 @@ E.g., to print the start site of every exon in every record, one would do:
 
 Writing refFlat files
 ~~~~~~~~~~~~~~~~~~~~~
-Writing refFlat files is done with the ``Writer`` object, which consumes ``Record``s.
+Writing refFlat files is done with the ``Writer`` object, which consumes ``Record`` instances.
 E.g., to copy a refFlat file using a ``Reader`` and ``Writer`` one could do:
 
 .. code-block:: python
@@ -55,7 +55,7 @@ E.g., to copy a refFlat file using a ``Reader`` and ``Writer`` one could do:
 New records can be generated using the ``RecordFactory`` object in ``pyrefflat.factories``.
 Initializing a ``RecordFactory`` object without any arguments will result in an empty line.
 If one initializes a ``RecordFactory`` with a ``Record`` object, it will use the ``Record`` as a template.
-Fields can be set by using the ``setattribute()`` method. Fields can be imported from ``pyrefflat.generics``.
+Fields can be set by using the a setter method. Fields can be imported from ``pyrefflat.generics``.
 The following creates a record on chromosome 1, with gene ``AAAA``, ranging from position 1 to 1000 and having 1 exon.
 
 .. code-block:: python
@@ -64,17 +64,17 @@ The following creates a record on chromosome 1, with gene ``AAAA``, ranging from
     from pyrefflat.generics import NUMERIC_COLUMNS, NUMERIC_LIST_COLUMNS, STRING_COLUMNS
 
     factory = RecordFactory()
-    factory.setattribute("geneName", "AAAA")
-    factory.setattribute("name", "AAAA")
-    factory.setattribute("chrom", 1)
-    factory.setattribute("strand", "+")
-    factory.setattribute("txStart", 1)
-    factory.setattrbiute("txEnd", 1000)
-    factory.setattribute("cdsStart", 1)
-    factory.setattribute("cdsEnd", 1000)
-    factory.setattribute("exonCount", 1)
-    factory.setattribute("exonStarts", [1])
-    factory.setattribute("exonEnds", [1000])
+    factory.set_gene("AAAA")
+    factory.set_transcript("AAAA")
+    factory.set_chromosome(1)
+    factory.set_strand( "+")
+    factory.set_transcription_start(1)
+    factory.set_transcription_end(1000)
+    factory.set_cds_start(1)
+    factory.set_cds_end(1000)
+    factory.set_exon_count(1)
+    factory.set_exon_starts([1])
+    factory.set_exon_ends([1000])
 
     record = factory.make()
 
