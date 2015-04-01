@@ -137,6 +137,10 @@ class Test_RecordFactory():
         factory.set_exon_ends([2, 3, 4])
         assert factory.make().exonEnds == [2, 3, 4]
 
+    def test_strand(self, factory):
+        factory.set_strand("+")
+        assert factory.make().strand == "+"
+
     def test_except_set_gene(self, factory):
         with pytest.raises(AssertionError):
             factory.set_gene(100)
@@ -184,5 +188,9 @@ class Test_RecordFactory():
     def test_except_set_exonends_list(self, factory):
         with pytest.raises(AssertionError):
             factory.set_exon_ends(["2", "3", "4"])
+
+    def test_except_set_strand(self, factory):
+        with pytest.raises(AssertionError):
+            factory.set_strand(1)
 
 

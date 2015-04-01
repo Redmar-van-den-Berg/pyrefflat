@@ -97,6 +97,10 @@ class RecordFactory(object):
 
         self.items["exonEnds"] = exonEnds
 
+    def set_strand(self, strand):
+        assert isinstance(strand, basestring)
+        self.items["strand"] = strand
+
     def make(self):
         normal_columns = set(COLUMNS) - set(NUMERIC_LIST_COLUMNS) # <-- remember, this is UNORDERED!
         line = [str(self.items[x]) for x in COLUMNS if x in normal_columns]
