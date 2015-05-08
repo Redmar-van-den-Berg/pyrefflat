@@ -5,7 +5,7 @@ __author__ = 'ahbbollen'
 
 import pytest
 from pyrefflat.parser import *
-
+from pyrefflat.models import *
 class TestReader:
     def test_return(self):
         r = Reader(filename="test/data/mini.refFlat")

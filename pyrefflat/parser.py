@@ -8,6 +8,7 @@ import locale
 import os.path
 
 from .generics import *
+from .models import *
 
 ENCODING = locale.getdefaultlocale()[1]
 
@@ -199,50 +200,3 @@ class Record(object):
 
         r = Record(**items)
         return r
-
-
-
-class Exon(object):
-    """
-    This class defines an exon inside a record
-    """
-    def __init__(self, gene, transcript, chr, start, stop, n):
-        self._gene = gene
-        self._transcript = transcript
-        self._chr = chr
-        self._start = start
-        self._end = stop
-        self._number = n
-
-    @property
-    def gene(self):
-        return self._gene
-
-    @property
-    def transcript(self):
-        return self._transcript
-
-    @property
-    def chr(self):
-        return self._chr
-
-    @property
-    def start(self):
-        return self._start
-
-    @property
-    def stop(self):
-        return self._end
-
-    @property
-    def number(self):
-        return self._number
-
-    @classmethod
-    def fromrecord(cls, record):
-        exons = []
-        for i, (s, e) in enumerate(zip(record.exonStarts,
-                                       record.exonEnds)):
-            exons.append(Exon(record.gene, record.transcript,
-                              record.chromosome, s, e, i))
-        return exons
