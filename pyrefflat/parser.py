@@ -200,3 +200,61 @@ class Record(object):
 
         r = Record(**items)
         return r
+
+
+class RefFlatProcessor(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self._already_processed = False
+        self.genes = {}
+        self.transcripts = {}
+        self.n_duplicates = 0
+        self.duplicates = []
+
+    def process(self, remove_duplicates=True):
+        """
+        Create gene and transcript tables for the input refflat file
+        :param remove_duplicates: Boolean. True by default.
+        If true, will remove duplicates from the tables.
+        Duplicate is defined when the transcript name occurs more than one (aka transcript should be unique)
+        Since we have no way of knowing what transcript is the correct one,
+        the retained transcript is simply the first we encounter.
+        Conflicting records will be placed in the `duplicates` list of this object
+        Please note that if this variable is set to False, derived gene coordinates may no longer make sense
+        (Yes, there are transcripts that are annotated on multiple chromosomes even!)
+        :return: genes as dict to self.genes, transcript as dict to self.transcripts
+        """
+
+        for record in Reader(self.filename):
+            if not record.gene in self.genes and not record.transcript in self.transcripts:
+                tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
+                                           record.cdsStart, record.cdsEnd, exons=record.exons)
+                tmpgene = Gene(record.gene)
+                tmpgene.update_transcripts(tmptranscript)
+                tmptranscript.gene = tmpgene
+                self.genes[record.gene] = tmpgene
+                self.transcripts[tmptranscript.name] = tmptranscript
+
+            elif record.gene in self.genes and not record.transcript in self.transcripts:
+                tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
+                                           record.cdsStart, record.cdsEnd, exons=record.exons)
+                self.genes[record.gene].update_transcripts(tmptranscript)
+                tmptranscript.gene = self.genes[record.gene]
+                self.transcripts[tmptranscript.name] = tmptranscript
+
+            elif record.gene in self.genes and record.transcript in self.transcripts:
+                self.n_duplicates += 1
+                self.duplicates += [record]
+                if not remove_duplicates:
+                    tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
+                                               record.cdsStart, record.cdsEnd, exons=record.exons)
+                    self.genes[record.gene].update_transcripts(tmptranscript)
+                    tmptranscript.gene = self.genes[record.gene]
+                    self.transcripts[tmptranscript.name] = tmptranscript
+
+            else:
+                # would happen in record.transcript in transcripts and not record.gene in genes
+                # which should not be possible
+                raise ValueError("Something odd happened!")
+
+        self._already_processed = True

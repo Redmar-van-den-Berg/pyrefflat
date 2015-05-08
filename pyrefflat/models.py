@@ -45,9 +45,10 @@ class Exon(object):
 
 
 class Transcript(object):
-    def __init__(self, name, gene, start, end, cds_start, cds_end, exons=None):
+    def __init__(self, name, chr, start, end, cds_start, cds_end, exons=None, gene=None):
         self.name = name
         self.gene = gene
+        self.chr = chr
         self.start = start
         self.end = end
         self.cds_start = cds_start
@@ -67,27 +68,30 @@ class Transcript(object):
 
 
 class Gene(object):
-    def __init__(self, name, start=None, end=None, transcripts=None):
+    def __init__(self, name, chr=None, min_coord=None, max_coord=None, transcripts=None):
         self.name = name
-        self.start = start
-        self.end = end
+        self.min_coord = min_coord
+        self.max_coord = max_coord
         self.transcripts = transcripts
+        self.chr = chr
 
     def update_transcripts(self, transcript):
-        if self.start:
-            if transcript.start < self.start:
-                self.start = transcript.start
+        if self.min_coord:
+            if transcript.start < self.min_coord:
+                self.min_coord = transcript.start
         else:
-            self.start = transcript.start
+            self.min_coord = transcript.start
 
-        if self.end:
-            if transcript.end > self.end:
-                self.end = transcript.end
+        if self.max_coord:
+            if transcript.end > self.max_coord:
+                self.max_coord = transcript.end
         else:
-            self.end = transcript.end
+            self.max_coord = transcript.end
 
         if self.transcripts:
             self.transcripts += [transcript]
+            self.chr += [transcript.chr]
         else:
             self.transcripts = [transcript]
+            self.chr = [transcript.chr]
 
