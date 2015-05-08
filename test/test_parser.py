@@ -65,12 +65,6 @@ def exons(record):
 
 class TestRecord():
 
-    def test_filename(self, record):
-        assert record.filename == "mini.refFlat"
-
-    def test_raw_items(self, record):
-        assert len(record._raw_items) == 11
-
     def test_gene_type(self, record):
         assert isinstance(record.gene, basestring)
 

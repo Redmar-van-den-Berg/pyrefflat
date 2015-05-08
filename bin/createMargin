@@ -2,20 +2,19 @@ __author__ = 'ahbbollen'
 
 import argparse
 
-from pyrefflat.parser import Reader, Writer
-from pyrefflat.factories import RecordFactory
+from pyrefflat.parser import Reader, Writer, Record
 
 def marginize(iname, oname, margin):
     reader = Reader(iname)
     writer = Writer(oname)
 
     for record in reader:
-        factory = RecordFactory(record._items)
+        d = record.to_dict()
         exonstarts = [int(x) - margin for x in record.exonStarts]
         exonends = [int(x) + margin for x in record.exonEnds]
-        factory.setattribute("exonStarts", map(str, exonstarts))
-        factory.setattribute("exonEnds", map(str, exonends))
-        writer.write(factory.make())
+        d["exonStarts"] = map(str, exonstarts)
+        d["exondEnds"] = map(str, exonends)
+        writer.write(Record.fromdict(d))
 
     reader.close()
     writer.close()

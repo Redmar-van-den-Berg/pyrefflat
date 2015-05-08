@@ -7,8 +7,7 @@ __author__ = 'ahbbollen'
 import locale
 import os.path
 
-COLUMNS = ["geneName", "name", "chrom", "strand", "txStart", "txEnd",
-           "cdsStart", "cdsEnd", "exonCount", "exonStarts", "exonEnds"]
+from .generics import *
 
 ENCODING = locale.getdefaultlocale()[1]
 
@@ -26,7 +25,7 @@ class Reader(object):
             line = next(self._handler)
         except ValueError:
             raise StopIteration
-        return Record(line, self._filename)
+        return Record.fromline(line)
 
     # python 3 compatibility
     def __next__(self):
@@ -42,82 +41,165 @@ class Writer(object):
         self._handler = open(filename, 'wb')
 
     def write(self, record):
-        self._handler.write((record._line + "\n").encode(ENCODING))
+        nline = record.line + "\n"
+        self._handler.write(nline.encode(ENCODING))
 
     def close(self):
         self._handler.close()
 
 
 class Record(object):
-    def __init__(self, line, filename):
-        self._line = line.decode(ENCODING)
-        self.filename = filename
-        self._parse_line()
-
-    def _parse_line(self):
-        self._raw_items = self._line.strip().split('\t')
-        assert len(self._raw_items) >= 11, "Contains less than 11 columns!"
-        self._items = dict()
-        for i in range(11):
-            self._items[COLUMNS[i]] = self._raw_items[i]
+    def __init__(self, geneName, name, chrom, strand, txStart, txEnd,
+                 cdsStart, cdsEnd, exonCount, exonStarts, exonEnds):
+        self._gene = geneName
+        self._tr_name = name
+        self._chr = chrom
+        self._strand = strand
+        self._tx_start = txStart
+        self._tx_end = txEnd
+        self._cds_start = cdsStart
+        self._cds_end = cdsEnd
+        self._exon_count = exonCount
+        self._exon_start = exonStarts
+        self._exon_ends = exonEnds
 
     @property
     def gene(self):
-        return str(self._items["geneName"])
+        return str(self._gene)
 
     @property
     def transcript(self):
-        return str(self._items["name"])
+        return str(self._tr_name)
 
     @property
     def chromosome(self):
-        return str(self._items["chrom"])
+        return str(self._chr)
 
     @property
     def strand(self):
-        return str(self._items["strand"])
+        return str(self._strand)
 
     @property
     def txStart(self):
-        return int(self._items["txStart"])
+        return int(self._tx_start)
 
     @property
     def txEnd(self):
-        return int(self._items["txEnd"])
+        return int(self._tx_end)
 
     @property
     def cdsStart(self):
-        return int(self._items["cdsStart"])
+        return int(self._cds_start)
 
     @property
     def cdsEnd(self):
-        return int(self._items["cdsEnd"])
+        return int(self._cds_end)
 
     @property
     def n_exons(self):
-        return int(self._items["exonCount"])
+        return int(self._exon_count)
 
     @property
     def exonStarts(self):
-        assert str(self._items["exonStarts"]).endswith(","), "Malformed refFlat line!"
-        starts = str(self._items["exonStarts"]).split(",")
-        # remove final unneccesary comma
-        if starts[-1] == '':
-            _ = starts.pop()
-        return list(map(int, starts))
+        return [int(x) for x in self._exon_start]
 
     @property
     def exonEnds(self):
-        assert str(self._items["exonEnds"]).endswith(","), "Malformed refFlat line!"
-        ends = str(self._items["exonEnds"]).split(",")
-        # remove final unneccessary comma
-        if ends[-1] == '':
-            _ = ends.pop()
-        return list(map(int, ends))
+        return [int(x) for x in self._exon_ends]
 
     @property
     def exons(self):
-        return ExonFactory(self).make()
+        return Exon.fromrecord(self)
+
+    def to_dict(self):
+        d = {}
+        d["geneName"] = self.gene
+        d["name"] = self.transcript
+        d["chrom"] = self.chromosome
+        d["strand"] = self.strand
+        d["txStart"] = self.txStart
+        d["txEnd"] = self.txEnd
+        d["cdsStart"] = self.cdsStart
+        d["cdsEnd"] = self.cdsEnd
+        d["exonStarts"] = self.exonStarts
+        d["exonEnds"] = self.exonEnds
+        d["exonCount"] = self.n_exons
+
+        return d
+
+    @property
+    def line(self):
+        line = []
+        d = self.to_dict()
+        for nlc in NUMERIC_LIST_COLUMNS:
+            d[nlc] = ",".join(map(str, d[nlc])) + ","
+        for col in COLUMNS:
+            line += [d[col]]
+        return "\t".join(map(str, line))
+
+
+
+    @classmethod
+    def fromdict(cls, items):
+        """
+        Builds a record from a dictionary.
+        This dictionary must contain all fields specified in generics.COLUMNS
+        """
+        normal_columns = set(COLUMNS) - set(NUMERIC_LIST_COLUMNS) # <-- remember, this is UNORDERED!
+
+        # first check whether all columns are there and properly formatted
+        for c in COLUMNS:
+            if c not in items:
+                raise ValueError("Item {c} must be given".format(c))
+        for nlc in NUMERIC_LIST_COLUMNS:
+            if not isinstance(items[nlc], list):
+                raise ValueError("Item {nlc} must be a list of integers".format(nlc))
+            elif not all([isinstance(x, int) for x in items[nlc]]):
+                raise ValueError("Item {nlc} must be a list of integers".format(nlc))
+        for nc in NUMERIC_COLUMNS:
+            if not isinstance(items[nc], int):
+                raise ValueError("Item {nc} must be an integer".format(nc))
+
+        #
+        #
+        # line = [str(items[x]) for x in COLUMNS if x in normal_columns]
+        # line = "\t".join(line)
+        # for c in NUMERIC_LIST_COLUMNS:
+        #     if isinstance(items[c], list) and all([isinstance(x, int) for x in items[c]]):
+        #         line += "\t" + ",".join(map(str, items[c])) + ","
+        #     elif isinstance(items[c], basestring) and items[c].endswith(","):
+        #         line += "\t" + items[c]
+        #     elif isinstance(items[c], basestring) and not items[c].endswith(","):
+        #         line += "\t" + items[c] + ","
+        #     else:
+        #         raise ValueError
+        r = Record(**items)
+        return r
+
+    @classmethod
+    def fromline(cls, line):
+        """
+        Builds a record from a line
+        """
+        raw_items = line.strip().split('\t')
+        assert len(raw_items) >= 11, "Contains less than 11 columns!"
+        items = dict()
+        for i in xrange(11):
+            items[COLUMNS[i]] = raw_items[i]
+        for nc in NUMERIC_COLUMNS:
+            items[nc] = int(items[nc])
+        for lnc in NUMERIC_LIST_COLUMNS:
+            if not items[lnc].endswith(','):
+                raise ValueError("Malformed refFlat file! Value {lnc} must end in a comma".format(lnc))
+
+            it = items[lnc].split(',')
+            it.pop()
+            items[lnc] = [int(x) for x in it]
+
+
+        r = Record(**items)
+        return r
+
 
 
 class Exon(object):
@@ -156,19 +238,11 @@ class Exon(object):
     def number(self):
         return self._number
 
-
-class ExonFactory(object):
-    """
-    This class defines a factory for producing Exons
-    Takes the a record
-    """
-    def __init__(self, record):
-        self.record = record
-
-    def make(self):
+    @classmethod
+    def fromrecord(cls, record):
         exons = []
-        for i, (s, e) in enumerate(zip(self.record.exonStarts,
-                                       self.record.exonEnds)):
-            exons.append(Exon(self.record.gene, self.record.transcript,
-                              self.record.chromosome, s, e, i))
+        for i, (s, e) in enumerate(zip(record.exonStarts,
+                                       record.exonEnds)):
+            exons.append(Exon(record.gene, record.transcript,
+                              record.chromosome, s, e, i))
         return exons
