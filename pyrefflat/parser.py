@@ -7,6 +7,8 @@ __author__ = 'ahbbollen'
 import locale
 import os.path
 
+import logging
+
 from .generics import *
 from .models import *
 
@@ -203,13 +205,24 @@ class Record(object):
 
 
 class RefFlatProcessor(object):
-    def __init__(self, filename):
+    def __init__(self, filename, log=True, log_level="INFO"):
         self.filename = filename
         self._already_processed = False
         self.genes = {}
         self.transcripts = {}
         self.n_duplicates = 0
         self.duplicates = []
+        self.log = log
+        if log:
+            self.logger = logging.getLogger("RefFlatProcessor")
+            numeric_level = getattr(logging, log_level.upper(), None)
+            self.logger.setLevel(numeric_level)
+            ch = logging.StreamHandler()
+            ch.setLevel(numeric_level)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            ch.setFormatter(formatter)
+            self.logger.addHandler(ch)
+            self.logger.info("Initializing...")
 
     def process(self, remove_duplicates=True):
         """
@@ -225,7 +238,9 @@ class RefFlatProcessor(object):
         :return: genes as dict to self.genes, transcript as dict to self.transcripts
         """
 
-        for record in Reader(self.filename):
+        for i, record in enumerate(Reader(self.filename)):
+            if i % 1000 == 0 and self.log:
+                self.logger.info("Processed {0} records".format(i))
             if not record.gene in self.genes and not record.transcript in self.transcripts:
                 tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
                                            record.cdsStart, record.cdsEnd, exons=record.exons)
@@ -258,3 +273,5 @@ class RefFlatProcessor(object):
                 raise ValueError("Something odd happened!")
 
         self._already_processed = True
+        if self.log:
+            self.logger.info("Done processing")
