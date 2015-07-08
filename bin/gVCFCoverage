@@ -1,7 +1,6 @@
 __author__ = 'ahbbollen'
 
 import argparse
-import math
 import vcf
 import json
 
@@ -103,32 +102,58 @@ class Calculator(object):
             trackline = "track type=bedGraph name='{0}' description='gVCFCoverage' graphType='bar'".format(sample)
             self.outWriter.write(bytes(trackline + "\n"))
             for line in self.refReader:
-                record = refparser.Record(line, self.reff)
+                record = refparser.Record.fromline(line)
                 for exon in record.exons:
                     if not self.bp:
                         cov = _get_coverage(self.vcfReader, exon, self.gqx,
                                             self.min_val, self.perc, sample, self.margin)
+
                         if self.lim and cov < self.min_val:
                             continue
+
                         elif self.rlim and cov >= self.min_val:
                             continue
+
                         bedline = [exon.chr, exon.start, exon.stop]
                         bedline.append(cov)
                         bedline = map(str, bedline)
                         self.outWriter.write(bytes("\t".join(bedline) + "\n"))
                     else:
-                        locations = self.vcfReader.fetch(str(exon.chr),
-                                                         int(exon.start) - self.margin,
-                                                         int(exon.stop) + self.margin)
+                        try:
+                            locations = self.vcfReader.fetch(str(exon.chr),
+                                                             int(exon.start) - self.margin,
+                                                             int(exon.stop) + self.margin)
+                        except:
+                            locations = self.vcfReader.fetch(str(exon.chr),
+                                                             int(exon.start) - self.margin,
+                                                             int(exon.start) + self.margin)
+
                         for loc in locations:
                             cov = _calc_gqx(loc, sample)
                             if self.lim and cov < self.min_val:
                                 continue
                             elif self.rlim and cov >= self.min_val:
                                 continue
-                            bedline = [loc.CHROM, loc.POS, int(loc.POS)+1, cov]
-                            bedline = map(str, bedline)
-                            self.outWriter.write(bytes("\t".join(bedline) + "\n"))
+
+                            if self.mode == 'BP_RESOLUTION':
+                                bedline = [loc.CHROM, loc.POS, int(loc.POS)+1, cov]
+                                bedline = map(str, bedline)
+                                self.outWriter.write(bytes("\t".join(bedline) + "\n"))
+
+                            # mode GVCF
+                            else:
+                                # in case of non-variants
+                                try:
+                                    for x in xrange(loc.POS, int(loc.INFO['END'])+1):
+                                        bedline = [loc.CHROM, x-1, x, cov]
+                                        bedline = map(str, bedline)
+                                        self.outWriter.write(bytes("\t".join(bedline) + "\n"))
+                                # in case of variants (do not have END tag)
+                                except KeyError:
+                                    bedline = [loc.CHROM, loc.POS, int(loc.POS)+1, cov]
+                                    bedline = map(str, bedline)
+                                    self.outWriter.write(bytes("\t".join(bedline) + "\n"))
+
         self.close_all()
 
     def _json(self):
@@ -136,7 +161,7 @@ class Calculator(object):
 
         for sample in self.vcfReader.samples:
             for line in self.refReader:
-                record = refparser.Record(line, self.reff)
+                record = refparser.Record.fromline(line)
                 gene = record.gene
                 transcript = record.transcript
                 transcriptdict = {}
@@ -171,7 +196,7 @@ class Calculator(object):
             self.outWriter.write(bytes(headerline))
 
             for line in self.refReader:
-                record = refparser.Record(line, self.reff)
+                record = refparser.Record.fromline(line)
                 gene = record.gene
                 transcript = record.transcript
                 for exon in record.exons:
@@ -215,9 +240,6 @@ if __name__ == '__main__':
     parser.add_argument('--margin', nargs='?', const=0, type=int, help="Margin around refflat records. Defaults to 0 (no margin)")
 
     args = parser.parse_args()
-
-    if args.mode == "GVCF":
-        raise NotImplementedError
 
     if args.limit and args.reverse_limit:
         raise ValueError("Cannot combine --limit and --reverse-limit")
