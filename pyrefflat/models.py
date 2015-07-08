@@ -4,6 +4,9 @@ class Exon(object):
     """
     This class defines an exon inside a record
     """
+
+    __slots__ = ["_gene", "_transcript", "_chr", "_start", "_end", "_number"]
+
     def __init__(self, gene, transcript, chr, start, stop, n):
         self._gene = gene
         self._transcript = transcript
@@ -47,6 +50,8 @@ class Exon(object):
 
 
 class Transcript(object):
+    __slots__ = ["name", "gene", "chr", "start", "end", "cds_start", "cds_end", "exons", "strand"]
+
     def __init__(self, name, chr, start, end, cds_start, cds_end, exons=None, gene=None, strand="+"):
         self.name = name
         self.gene = gene
@@ -97,6 +102,8 @@ class Transcript(object):
 
 
 class Gene(object):
+    __slots__ = ["name", "min_coord", "max_coord", "transcripts", "chr"]
+
     def __init__(self, name, chr=None, min_coord=None, max_coord=None, transcripts=None):
         self.name = name
         self.min_coord = min_coord
