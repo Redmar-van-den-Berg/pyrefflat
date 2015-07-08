@@ -1,3 +1,3 @@
 __author__ = 'Sander Bollen'
 
-from .parser import Reader, Record
+from .parser import Reader, Record, Writer

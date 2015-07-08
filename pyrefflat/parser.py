@@ -243,7 +243,7 @@ class RefFlatProcessor(object):
                 self.logger.info("Processed {0} records".format(i))
             if not record.gene in self.genes and not record.transcript in self.transcripts:
                 tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
-                                           record.cdsStart, record.cdsEnd, exons=record.exons)
+                                           record.cdsStart, record.cdsEnd, exons=record.exons, strand=record.strand)
                 tmpgene = Gene(record.gene)
                 tmpgene.update_transcripts(tmptranscript)
                 tmptranscript.gene = tmpgene
@@ -252,7 +252,7 @@ class RefFlatProcessor(object):
 
             elif record.gene in self.genes and not record.transcript in self.transcripts:
                 tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
-                                           record.cdsStart, record.cdsEnd, exons=record.exons)
+                                           record.cdsStart, record.cdsEnd, exons=record.exons, strand=record.strand)
                 self.genes[record.gene].update_transcripts(tmptranscript)
                 tmptranscript.gene = self.genes[record.gene]
                 self.transcripts[tmptranscript.name] = tmptranscript
@@ -262,7 +262,7 @@ class RefFlatProcessor(object):
                 self.duplicates += [record]
                 if not remove_duplicates:
                     tmptranscript = Transcript(record.transcript, record.chromosome, record.txStart, record.txEnd,
-                                               record.cdsStart, record.cdsEnd, exons=record.exons)
+                                               record.cdsStart, record.cdsEnd, exons=record.exons, strand=record.strand)
                     self.genes[record.gene].update_transcripts(tmptranscript)
                     tmptranscript.gene = self.genes[record.gene]
                     self.transcripts[tmptranscript.name] = tmptranscript

@@ -1,3 +1,5 @@
+from generics import *
+
 class Exon(object):
     """
     This class defines an exon inside a record
@@ -45,7 +47,7 @@ class Exon(object):
 
 
 class Transcript(object):
-    def __init__(self, name, chr, start, end, cds_start, cds_end, exons=None, gene=None):
+    def __init__(self, name, chr, start, end, cds_start, cds_end, exons=None, gene=None, strand="+"):
         self.name = name
         self.gene = gene
         self.chr = chr
@@ -54,6 +56,7 @@ class Transcript(object):
         self.cds_start = cds_start
         self.cds_end = cds_end
         self.exons = exons
+        self.strand = strand
 
     def update_exons(self, exon):
         if exon.start < self.start:
@@ -65,6 +68,32 @@ class Transcript(object):
             self.exons.append(exon)
         else:
             self.exons = [exon]
+
+    @property
+    def line(self):
+        line = []
+        d = self.to_dict()
+        for nlc in NUMERIC_LIST_COLUMNS:
+            d[nlc] = ",".join(map(str, d[nlc])) + ","
+        for col in COLUMNS:
+            line += [d[col]]
+        return "\t".join(map(str, line))
+
+    def to_dict(self):
+        d = {}
+        d["geneName"] = self.gene.name
+        d["name"] = self.name
+        d["chrom"] = self.chr
+        d["strand"] = self.strand
+        d["txStart"] = self.start
+        d["txEnd"] = self.end
+        d["cdsStart"] = self.cds_start
+        d["cdsEnd"] = self.cds_end
+        d["exonStarts"] = [int(x.start) for x in self.exons]
+        d["exonEnds"] = [int(x.stop) for x in self.exons]
+        d["exonCount"] = len(self.exons)
+
+        return d
 
 
 class Gene(object):
