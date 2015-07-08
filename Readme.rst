@@ -52,32 +52,35 @@ E.g., to copy a refFlat file using a ``Reader`` and ``Writer`` one could do:
 
 **NOTE: this part is still in flux, so liable to change!**
 
-New records can be generated using the ``RecordFactory`` object in ``pyrefflat.factories``.
-Initializing a ``RecordFactory`` object without any arguments will result in an empty line.
-If one initializes a ``RecordFactory`` with a ``Record`` object, it will use the ``Record`` as a template.
-Fields can be set by using the a setter method. Fields can be imported from ``pyrefflat.generics``.
-The following creates a record on chromosome 1, with gene ``AAAA``, ranging from position 1 to 1000 and having 1 exon.
+New records can be generated using the ``fromline`` or ``fromdict`` classmethods of the ``Record`` object.
+The ``fromline`` classmethod takes a single refFlat line, whereas ``fromdict`` takes a dictionary.
+Key names can be found be found in ``generics.COLUMNS``
+
+Processor
+~~~~~~~~~
+Apart from reading lines iteratively, a ``RefFlatProcessor`` object is provided.
+This processes all records in the given refFlat file, and will store their genes, transcripts and exons as attributes,
+and it will calculate derived gene coordinates.
+The ``process`` function will by default remove any duplicated transcripts, storing only the first it encounters.
+One can disable this, but this might throw off derived gene coordinates
+(e.g. some refseq transcripts are annotated on multiple chromosomes!)
+
+The processor allows one to for instance sort records. E.g., to get a list of unique genes in the refFlat file, and write all records sorted on gene name:
 
 .. code-block:: python
 
-    from pyrefflat.factories import RecordFactory
-    from pyrefflat.generics import NUMERIC_COLUMNS, NUMERIC_LIST_COLUMNS, STRING_COLUMNS
+    from pyrefflat import Writer
+    from pyrefflat.parser import RefFlatProcessor
 
-    factory = RecordFactory()
-    factory.set_gene("AAAA")
-    factory.set_transcript("AAAA")
-    factory.set_chromosome(1)
-    factory.set_strand( "+")
-    factory.set_transcription_start(1)
-    factory.set_transcription_end(1000)
-    factory.set_cds_start(1)
-    factory.set_cds_end(1000)
-    factory.set_exon_count(1)
-    factory.set_exon_starts([1])
-    factory.set_exon_ends([1000])
+    writer = Writer("/path/to/new.refFlat")
+    proc = RefFlatProcessor("path/to/file.refFlat")
+    proc.process
 
-    record = factory.make()
+    for gene in sorted(set(proc.genes.keys())):
+        for tr in proc.genes[gene].transcripts:
+        writer.write(tr)
 
+    writer.close()
 
 Tools
 -----
