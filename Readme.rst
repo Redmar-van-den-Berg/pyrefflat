@@ -8,7 +8,7 @@ It includes a reader and writer object for easy manipulation of refFlat files.
 Installation
 ------------
 
-To install pyrefflat, clone the repository at  https://git.lumc.nl/a.h.b.bollen/pyrefflat .
+To install pyrefflat, clone the repository at  https://github.com/sndrtj/pyrefflat .
 Run ``python setup.py install`` to install the module. It is recommended you use a virtual environment.
 
 Usage
@@ -50,7 +50,6 @@ E.g., to copy a refFlat file using a ``Reader`` and ``Writer`` one could do:
     reader.close()
 
 
-**NOTE: this part is still in flux, so liable to change!**
 
 New records can be generated using the ``fromline`` or ``fromdict`` classmethods of the ``Record`` object.
 The ``fromline`` classmethod takes a single refFlat line, whereas ``fromdict`` takes a dictionary.
