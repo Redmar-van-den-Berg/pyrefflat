@@ -1,7 +1,7 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import *
-__author__ = 'ahbbollen'
+__author__ = 'Sander Bollen'
 
 import pytest
 from pyrefflat.parser import *
@@ -268,5 +268,4 @@ class TestProcessor():
         for x in proc.genes.values():
             tr += x.transcripts
         assert len(tr) == 60
-
 

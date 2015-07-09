@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import *
 
-__author__ = 'ahbbollen'
+__author__ = 'Sander Bollen'
 
 import locale
 import os.path

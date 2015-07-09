@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division,
 from builtins import *
 
 
-__author__ = 'ahbbollen'
+__author__ = 'Sander Bollen'
 
 
 COLUMNS = ["geneName", "name", "chrom", "strand", "txStart", "txEnd",
