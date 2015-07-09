@@ -1,3 +1,9 @@
+.. image:: https://travis-ci.org/sndrtj/pyrefflat.svg?branch=master
+    :target: https://travis-ci.org/sndrtj/pyrefflat
+
+.. image:: https://coveralls.io/repos/sndrtj/pyrefflat/badge.svg?branch=master&service=github 
+    :target: https://coveralls.io/github/sndrtj/pyrefflat?branch=master
+ 
 =========
 pyrefflat
 =========
