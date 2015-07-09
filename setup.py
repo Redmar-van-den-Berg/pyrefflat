@@ -10,4 +10,6 @@ setup(name="pyrefflat",
       license="MIT",
       packages=['pyrefflat'],
       zip_safe=False,
+      install_requires=['pytest', 'future'],
+      classifiers=["Topic :: Scientific/Engineering :: Bio-Informatics"],
       scripts=['bin/gVCFCoverage', 'bin/createMargin', 'bin/refFlat2Bed'])
