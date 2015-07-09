@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import *
 
-from generics import *
+from .generics import *
 
 class Exon(object):
     """
@@ -70,7 +70,7 @@ class Transcript(object):
     def update_exons(self, exon):
         if exon.start < self.start:
             raise ValueError("Start of exon cannot be in front of start of transcript")
-        if exon.end < self.end:
+        if exon.stop > self.end:
             raise ValueError("End of exon cannot be behind end of transcript")
 
         if self.exons:
