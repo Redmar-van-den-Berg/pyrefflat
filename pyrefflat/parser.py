@@ -153,15 +153,15 @@ class Record(object):
         # first check whether all columns are there and properly formatted
         for c in COLUMNS:
             if c not in items:
-                raise ValueError("Item {c} must be given".format(c))
+                raise ValueError("Item {c} must be given".format(c=c))
         for nlc in NUMERIC_LIST_COLUMNS:
             if not isinstance(items[nlc], list):
-                raise ValueError("Item {nlc} must be a list of integers".format(nlc))
+                raise ValueError("Item {nlc} must be a list of integers".format(nlc=nlc))
             elif not all([isinstance(x, int) for x in items[nlc]]):
-                raise ValueError("Item {nlc} must be a list of integers".format(nlc))
+                raise ValueError("Item {nlc} must be a list of integers".format(nlc=nlc))
         for nc in NUMERIC_COLUMNS:
             if not isinstance(items[nc], int):
-                raise ValueError("Item {nc} must be an integer".format(nc))
+                raise ValueError("Item {nc} must be an integer".format(nc=nc))
 
         #
         #
@@ -224,7 +224,7 @@ class RefFlatProcessor(object):
             self.logger.addHandler(ch)
             self.logger.info("Initializing...")
 
-    def process(self, remove_duplicates=True):
+    def process(self, remove_duplicates=True, flush=True):
         """
         Create gene and transcript tables for the input refflat file
         :param remove_duplicates: Boolean. True by default.
@@ -235,8 +235,16 @@ class RefFlatProcessor(object):
         Conflicting records will be placed in the `duplicates` list of this object
         Please note that if this variable is set to False, derived gene coordinates may no longer make sense
         (Yes, there are transcripts that are annotated on multiple chromosomes even!)
+        :param flush: flush contents of object first
         :return: genes as dict to self.genes, transcript as dict to self.transcripts
         """
+
+        if flush:
+            self._already_processed = False
+            self.genes = {}
+            self.transcripts = {}
+            self.duplicates = []
+            self.n_duplicates = 0
 
         for i, record in enumerate(Reader(self.filename)):
             if i % 1000 == 0 and self.log:

@@ -63,6 +63,11 @@ def record():
 def exons(record):
     return record.exons
 
+@pytest.fixture(scope="module")
+def proc():
+    p = RefFlatProcessor("test/data/midi.refFlat")
+    return p
+
 class TestRecord():
 
     def test_gene_type(self, record):
@@ -154,6 +159,32 @@ class TestRecord():
                                     37070423, 37081785, 37083822, 37089174,
                                     37090100, 37090508, 37092337])
 
+    def test_fromdict(self, record):
+        nrecrd = Record.fromdict(record.to_dict())
+        assert isinstance(nrecrd, Record)
+
+    def test_fromdict_notcolumn(self, record):
+        d = record.to_dict()
+        for c in COLUMNS:
+            d.pop(c)
+            with pytest.raises(ValueError):
+                _ = Record.fromdict(d)
+
+    def test_fromdict_not_nlccolumn(self, record):
+        d = record.to_dict()
+        for c in NUMERIC_LIST_COLUMNS:
+            d[c] = "blah"
+            with pytest.raises(ValueError):
+                _ = Record.fromdict(d)
+
+    def test_fromdict_not_nc_column(self, record):
+        d = record.to_dict()
+        for c in NUMERIC_COLUMNS:
+            d[c] = "blah"
+            with pytest.raises(ValueError):
+                _ = Record.fromdict(d)
+
+
 class TestExon():
 
     def test_gene_type(self, exons):
@@ -214,3 +245,28 @@ class TestExon():
     def test_number_contents(self, exons):
         for i, ex in enumerate(exons):
             assert (ex.number == i)
+
+
+class TestProcessor():
+    def test_process_init(self):
+        p = RefFlatProcessor("test/data/midi.refFlat")
+        assert isinstance(p, RefFlatProcessor)
+
+    def test_processor_process(self, proc):
+        proc.process()
+        assert proc._already_processed
+
+    def test_processor_transcripts(self, proc):
+        assert len(proc.transcripts) == 30
+
+    def test_processor_duplicates(self, proc):
+        assert proc.n_duplicates == 30
+
+    def test_process_do_not_remove(self, proc):
+        proc.process(remove_duplicates=False)
+        tr = []
+        for x in proc.genes.values():
+            tr += x.transcripts
+        assert len(tr) == 60
+
+
