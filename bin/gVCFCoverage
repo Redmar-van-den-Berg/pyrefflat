@@ -236,8 +236,8 @@ if __name__ == '__main__':
     parser.add_argument('--bp-res', action='store_true', help="Output base-pair resolution")
 
     # other arguments
-    parser.add_argument('--min-value', nargs='?', const=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
-    parser.add_argument('--margin', nargs='?', const=0, type=int, help="Margin around refflat records. Defaults to 0 (no margin)")
+    parser.add_argument('--min-value', nargs='?', default=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
+    parser.add_argument('--margin', nargs='?', default=0, type=int, help="Margin around refflat records. Defaults to 0 (no margin)")
 
     args = parser.parse_args()
 
