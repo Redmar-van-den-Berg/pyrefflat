@@ -230,7 +230,7 @@ if __name__ == '__main__':
     # optional arguments
     parser.add_argument('--tab-delimited', action='store_true', help='Output CSV as TSV')
     parser.add_argument('-g', '--gqx', action='store_true', help="Output gqx values")
-    parser.add_argument('-p', '--perc', action='store_true', help="Output % of --min-value")
+    parser.add_argument('-p', '--perc', action='store_true', help="Output perc of --min-value")
     parser.add_argument('--limit', action='store_true', help="Limit output to just those records at least attaining --min-value")
     parser.add_argument('--reverse-limit', action='store_true', help="Limit output to just those records which do NOT attain --min-value")
     parser.add_argument('--bp-res', action='store_true', help="Output base-pair resolution")
