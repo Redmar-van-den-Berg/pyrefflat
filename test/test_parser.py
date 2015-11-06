@@ -6,7 +6,10 @@ __author__ = 'Sander Bollen'
 import pytest
 from pyrefflat.parser import *
 from pyrefflat.models import *
+
+
 class TestReader:
+
     def test_return(self):
         r = Reader(filename="test/data/mini.refFlat")
         re = next(r)
@@ -48,25 +51,39 @@ class TestWriter:
             writer.write(record)
 
 
-
 @pytest.fixture(scope="module")
 def writer():
     w = Writer(filename="test/data/write.refFlat")
     return w
+
 
 @pytest.fixture(scope="module")
 def record():
     r = Reader(filename="test/data/mini.refFlat")
     return next(r)
 
+
+@pytest.fixture(scope="module")
+def reverse_record():
+    r = Reader(filename="test/data/reverse.refFlat")
+    return next(r)
+
+
+@pytest.fixture(scope="module")
+def reverse_exons(reverse_record):
+    return reverse_record.exons
+
+
 @pytest.fixture(scope="module")
 def exons(record):
     return record.exons
+
 
 @pytest.fixture(scope="module")
 def proc():
     p = RefFlatProcessor("test/data/midi.refFlat")
     return p
+
 
 class TestRecord():
 
@@ -244,7 +261,13 @@ class TestExon():
 
     def test_number_contents(self, exons):
         for i, ex in enumerate(exons):
-            assert (ex.number == i)
+            assert (ex.number == i+1)
+
+    def test_reverse_numbers(self, reverse_exons):
+        i = len(reverse_exons)
+        for x in reverse_exons:
+            assert(x.number == i)
+            i -= 1
 
 
 class TestProcessor():

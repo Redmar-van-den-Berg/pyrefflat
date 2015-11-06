@@ -46,10 +46,21 @@ class Exon(object):
     @classmethod
     def fromrecord(cls, record):
         exons = []
-        for i, (s, e) in enumerate(zip(record.exonStarts,
-                                       record.exonEnds)):
-            exons.append(Exon(record.gene, record.transcript,
-                              record.chromosome, s, e, i))
+        assert(len(record.exonStarts) == len(record.exonEnds))
+        if record.strand == "+":
+            for i, (s, e) in enumerate(zip(record.exonStarts,
+                                           record.exonEnds)):
+                exons.append(Exon(record.gene, record.transcript,
+                                  record.chromosome, s, e, i+1))
+
+        # for negative strand transcripts
+        else:
+            i = len(record.exonStarts)
+            for (s, e) in zip(record.exonStarts, record.exonEnds):
+                exons.append(Exon(record.gene, record.transcript,
+                                  record.chromosome, s, e, i))
+                i -= 1
+
         return exons
 
 
