@@ -123,10 +123,8 @@ class Calculator(object):
                             locations = self.vcfReader.fetch(str(exon.chr),
                                                              int(exon.start) - self.margin,
                                                              int(exon.stop) + self.margin)
-                        except:
-                            locations = self.vcfReader.fetch(str(exon.chr),
-                                                             int(exon.start) - self.margin,
-                                                             int(exon.start) + self.margin)
+                        except ValueError:
+                            continue
 
                         for loc in locations:
                             cov = _calc_gqx(loc, sample)
