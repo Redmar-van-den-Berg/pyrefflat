@@ -297,20 +297,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     #generic arguments
-    parser.add_argument('-I', '--input', help="Your input gzipped gVCF")
-    parser.add_argument('-O', '--output', help="Path to output file")
-    parser.add_argument('-R', '--refflat', help="Path to refflat file")
-    parser.add_argument('-m', '--mode', choices=['BP_RESOLUTION', 'GVCF'], help="gVCF mode")
-    parser.add_argument('-om', '--output-mode', choices=['bedgraph', 'csv', 'json'], help="Output file type")
+    parser.add_argument('-I', '--input', help="Your input gzipped gVCF", required=True)
+    parser.add_argument('-O', '--output', help="Path to output file", required=True)
+    parser.add_argument('-R', '--refflat', help="Path to refflat file", required=True)
+    parser.add_argument('-m', '--mode', choices=['BP_RESOLUTION', 'GVCF'], help="gVCF mode", required=True)
+    parser.add_argument('-om', '--output-mode', choices=['bedgraph', 'csv', 'json'], help="Output file type", required=True)
 
     # optional arguments
     parser.add_argument('--tab-delimited', action='store_true', help='Output CSV as TSV')
     parser.add_argument('-g', '--gqx', action='store_true', help="Output gqx values")
     parser.add_argument('-p', '--perc', action='store_true', help="Output perc of --min-value")
-    parser.add_argument('--limit', action='store_true', help="Limit output to just those records at least attaining --min-value")
-    parser.add_argument('--reverse-limit', action='store_true', help="Limit output to just those records which do NOT attain --min-value")
     parser.add_argument('--bp-res', action='store_true', help="Output base-pair resolution")
     parser.add_argument('-c', '--cds-only', action='store_true', help="Consider coding regions only")
+
+    limit_group = parser.add_mutually_exclusive_group()
+    limit_group.add_argument('--limit', action='store_true', help="Limit output to just those records at least attaining --min-value")
+    limit_group.add_argument('--reverse-limit', action='store_true', help="Limit output to just those records which do NOT attain --min-value")
 
     # other arguments
     parser.add_argument('--min-value', nargs='?', default=0, type=int, help="minimal value, in gqx or dp, defaults to 0")

@@ -98,6 +98,50 @@ This tool calculates coverage on the regions specified in the refFlat exon field
 It can output in three different formats, namely simple tab-delimited (csv or tsv) format, BED format or as a JSON.
 It supports using the GQ field, allowing to filter only those regions with a minimum GQX value.
 
+.. code-block::
+
+    gVCFCoverage -h
+    usage: gVCFCoverage [-h] -I INPUT -O OUTPUT -R REFFLAT -m {BP_RESOLUTION,GVCF}
+                        -om {bedgraph,csv,json} [--tab-delimited] [-g] [-p]
+                        [--bp-res] [-c] [--limit | --reverse-limit]
+                        [--min-value [MIN_VALUE]] [--margin [MARGIN]]
+                        [--intron-margin [INTRON_MARGIN]]
+                        [--utr-margin [UTR_MARGIN]]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -I INPUT, --input INPUT
+                            Your input gzipped gVCF
+      -O OUTPUT, --output OUTPUT
+                            Path to output file
+      -R REFFLAT, --refflat REFFLAT
+                            Path to refflat file
+      -m {BP_RESOLUTION,GVCF}, --mode {BP_RESOLUTION,GVCF}
+                            gVCF mode
+      -om {bedgraph,csv,json}, --output-mode {bedgraph,csv,json}
+                            Output file type
+      --tab-delimited       Output CSV as TSV
+      -g, --gqx             Output gqx values
+      -p, --perc            Output perc of --min-value
+      --bp-res              Output base-pair resolution
+      -c, --cds-only        Consider coding regions only
+      --limit               Limit output to just those records at least attaining
+                            --min-value
+      --reverse-limit       Limit output to just those records which do NOT attain
+                            --min-value
+      --min-value [MIN_VALUE]
+                            minimal value, in gqx or dp, defaults to 0
+      --margin [MARGIN]     General margin around refflat records. Will be
+                            overriden by --utr-margin and --intron-margin If these
+                            are set
+      --intron-margin [INTRON_MARGIN]
+                            Margin around introns of refflat records. Defaults to
+                            0 (no margin)
+      --utr-margin [UTR_MARGIN]
+                            Margin around utrs of refflat records. Defaults to 0
+                            (no margin)
+
+
 createMargin
 ~~~~~~~~~~~~
 This tool adds a margin around each exon and writes the result to a new refFlat file.
