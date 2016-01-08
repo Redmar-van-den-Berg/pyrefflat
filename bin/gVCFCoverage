@@ -6,6 +6,78 @@ import json
 
 import pyrefflat.parser as refparser
 
+
+class Region(object):
+    def __init__(self, chr, start, stop, tag=None):
+        self.chr = chr
+        self.start = start
+        self.stop = stop
+        self.tag = tag
+
+    def validate(self):
+        """
+        Return true if region makes sense
+        :return:
+        """
+        if self.stop <= self.start:
+            return False
+        else:
+            return True
+
+
+def regions_from_refrecord(record, im, um, cds=False):
+    """
+    Get queryable regions from a refflat record
+    :param record: refflat record
+    :param im: intron margin
+    :param um: utr margin
+    :param cds: Consider only coding regions
+    :return: List[Region]
+    """
+
+    left_utr_start = record.txStart - um
+    if cds:
+        left_utr_end = record.cdsStart - um
+        right_utr_end = record.cdsEnd + um
+        right_utr_start = record.cdsEnd + um
+    else:
+        left_utr_end = record.cdsStart
+        right_utr_end = record.txEnd + um
+        right_utr_start = record.cdsEnd
+
+    regions = []
+
+    for i, (s, e) in enumerate(zip(record.exonStarts, record.exonEnds)):
+        if not cds:
+            if i == 0:
+                start = left_utr_start
+                end = e + im
+            elif i < (record.n_exons - 1):
+                start = s - im
+                end = e + im
+            else:
+                start = s - im
+                end = right_utr_end
+        else:
+            if i == 0:
+                start = left_utr_end
+                end = e + im
+            elif i < (record.n_exons - 1):
+                start = s - im
+                end = e + im
+            else:
+                start = s - im
+                end = right_utr_start
+
+        start -= 1  # bed start counting from 0
+        if record.strand == "+":
+            exon_n = str(i+1)
+        else:
+            exon_n = str((i + record.n_exons) - (2*i))
+        regions.append(Region(record.chromosome, start, end, exon_n))
+    return [x for x in regions if x.validate()]
+
+
 def _calc_gqx(record, sample):
     """
     This function calculates gqx values
@@ -21,25 +93,21 @@ def _calc_gqx(record, sample):
     else:
         return gq
 
-def _get_coverage(reader, exon, gqx, min_val, perc, sample, margin):
+def _get_coverage(reader, region, gqx, min_val, perc, sample):
     """
-    This function gets coverage for an exon
+    This function gets coverage from a region
     :param reader: a pyvcf Reader object
-    :param exon: a pyrefflat Exon object
+    :param region: a Region object
     :param gqx: Boolean whether to output gqx values
     :param min_gqx: mimimal value, gqx or dp, (only combined with perc)
     :param perc: Boolean whether to output attained percentage of min_gqx
     :param sample: String with sample to be queried
-    :param margin: margin around record
     return: float with coverage
     """
     try:
-        records = reader.fetch(str(exon.chr), int(exon.start) - margin, int(exon.stop) + margin)
+        records = reader.fetch(str(region.chr), int(region.start), int(region.stop))
     except ValueError:
         return 0.0
-
-    #if len(records) == 0:
-    #    return 0.0
 
     covs = []
     for record in records:
@@ -76,7 +144,16 @@ class Calculator(object):
         self.bp = kwargs['bp_res']
         self.outmode = kwargs['output_mode']
         self.tab = kwargs['tab_delimited']
+        self.cds = kwargs['cds_only']
+
+        # margins
         self.margin = kwargs['margin']
+        self.utr_margin = kwargs['utr_margin']
+        self.intron_margin = kwargs['intron_margin']
+        if self.intron_margin == 0:
+            self.intron_margin = self.margin
+        if self.utr_margin == 0:
+            self.utr_margin = self.margin
 
         # readers/writers
         self.vcfReader = vcf.Reader(filename=self.inputf)
@@ -103,10 +180,11 @@ class Calculator(object):
             self.outWriter.write(bytes(trackline + "\n"))
             for line in self.refReader:
                 record = refparser.Record.fromline(line)
-                for exon in record.exons:
+                regions = regions_from_refrecord(record, self.intron_margin, self.utr_margin, self.cds)
+                for region in regions:
                     if not self.bp:
-                        cov = _get_coverage(self.vcfReader, exon, self.gqx,
-                                            self.min_val, self.perc, sample, self.margin)
+                        cov = _get_coverage(self.vcfReader, region, self.gqx,
+                                            self.min_val, self.perc, sample)
 
                         if self.lim and cov < self.min_val:
                             continue
@@ -114,15 +192,13 @@ class Calculator(object):
                         elif self.rlim and cov >= self.min_val:
                             continue
 
-                        bedline = [exon.chr, exon.start, exon.stop]
+                        bedline = [region.chr, region.start, region.stop]
                         bedline.append(cov)
                         bedline = map(str, bedline)
                         self.outWriter.write(bytes("\t".join(bedline) + "\n"))
                     else:
                         try:
-                            locations = self.vcfReader.fetch(str(exon.chr),
-                                                             int(exon.start) - self.margin,
-                                                             int(exon.stop) + self.margin)
+                            locations = self.vcfReader.fetch(str(region.chr), int(region.start), int(region.stop))
                         except ValueError:
                             continue
 
@@ -163,13 +239,14 @@ class Calculator(object):
                 gene = record.gene
                 transcript = record.transcript
                 transcriptdict = {}
-                for exon in record.exons:
-                    chr = exon.chr
-                    start = exon.start
-                    stop = exon.stop
-                    n = exon.number
-                    coverage = _get_coverage(self.vcfReader, exon, self.gqx,
-                                             self.min_val, self.perc, sample, self.margin)
+                regions = regions_from_refrecord(record, self.intron_margin, self.utr_margin, self.cds)
+                for region in regions:
+                    chr = region.chr
+                    start = region.start
+                    stop = region.stop
+                    n = region.tag
+                    coverage = _get_coverage(self.vcfReader, region, self.gqx,
+                                             self.min_val, self.perc, sample)
                     exondict = {"chr": chr, "start": int(start), "stop": int(stop),
                                 "number": n, "coverage": coverage, 'sample': sample}
                     transcriptdict[n] = exondict
@@ -197,14 +274,15 @@ class Calculator(object):
                 record = refparser.Record.fromline(line)
                 gene = record.gene
                 transcript = record.transcript
-                for exon in record.exons:
-                    chr = exon.chr
-                    start = exon.start
-                    stop = exon.stop
-                    n = exon.number
+                regions = regions_from_refrecord(record, self.intron_margin, self.utr_margin, self.cds)
+                for region in regions:
+                    chr = region.chr
+                    start = region.start
+                    stop = region.stop
+                    n = region.tag
                     line = [gene, transcript, chr, n, start, stop]
-                    cov = _get_coverage(self.vcfReader, exon, self.gqx,
-                                        self.min_val, self.perc, sample, self.margin)
+                    cov = _get_coverage(self.vcfReader, region, self.gqx,
+                                        self.min_val, self.perc, sample)
                     if self.lim and cov < self.min_val:
                         continue
                     elif self.rlim and cov >= self.min_val:
@@ -232,10 +310,15 @@ if __name__ == '__main__':
     parser.add_argument('--limit', action='store_true', help="Limit output to just those records at least attaining --min-value")
     parser.add_argument('--reverse-limit', action='store_true', help="Limit output to just those records which do NOT attain --min-value")
     parser.add_argument('--bp-res', action='store_true', help="Output base-pair resolution")
+    parser.add_argument('-c', '--cds-only', action='store_true', help="Consider coding regions only")
 
     # other arguments
     parser.add_argument('--min-value', nargs='?', default=0, type=int, help="minimal value, in gqx or dp, defaults to 0")
-    parser.add_argument('--margin', nargs='?', default=0, type=int, help="Margin around refflat records. Defaults to 0 (no margin)")
+    parser.add_argument("--margin", nargs='?', default=0, type=int, help="General margin around refflat records. \
+                                                                    Will be overriden by --utr-margin and --intron-margin \
+                                                                         If these are set")
+    parser.add_argument('--intron-margin', nargs='?', default=0, type=int, help="Margin around introns of refflat records. Defaults to 0 (no margin)")
+    parser.add_argument("--utr-margin", nargs='?', default=0, type=int, help="Margin around utrs of refflat records. Defaults to 0 (no margin)")
 
     args = parser.parse_args()
 
