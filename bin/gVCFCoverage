@@ -319,8 +319,8 @@ if __name__ == '__main__':
     parser.add_argument("--margin", nargs='?', default=0, type=int, help="General margin around refflat records. \
                                                                     Will be overriden by --utr-margin and --intron-margin \
                                                                          If these are set")
-    parser.add_argument('--intron-margin', nargs='?', default=0, type=int, help="Margin around introns of refflat records. Defaults to 0 (no margin)")
-    parser.add_argument("--utr-margin", nargs='?', default=0, type=int, help="Margin around utrs of refflat records. Defaults to 0 (no margin)")
+    parser.add_argument("-im", '--intron-margin', nargs='?', default=0, type=int, help="Margin around introns of refflat records. Defaults to 0 (no margin)")
+    parser.add_argument("-um", "--utr-margin", nargs='?', default=0, type=int, help="Margin around utrs of refflat records. Defaults to 0 (no margin)")
 
     args = parser.parse_args()
 
