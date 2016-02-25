@@ -49,7 +49,10 @@ def regions_from_refrecord(record, im, um, cds=False):
 
     for i, (s, e) in enumerate(zip(record.exonStarts, record.exonEnds)):
         if not cds:
-            if i == 0:
+            if record.n_exons == 1:
+                start = left_utr_start
+                end = right_utr_end
+            elif i == 0:
                 start = left_utr_start
                 end = e + im
             elif i < (record.n_exons - 1):
@@ -59,7 +62,10 @@ def regions_from_refrecord(record, im, um, cds=False):
                 start = s - im
                 end = right_utr_end
         else:
-            if i == 0:
+            if record.n_exons == 1:
+                start = left_utr_end
+                end = right_utr_start
+            elif i == 0:
                 start = left_utr_end
                 end = e + im
             elif i < (record.n_exons - 1):
