@@ -99,6 +99,20 @@ def _calc_gqx(record, sample):
     else:
         return gq
 
+
+def _get_record_length(record):
+    """
+    Get the length of a (g)VCF record
+    :param record: pyvcf record
+    :return: int
+    """
+
+    if 'END' in record.INFO:
+        return record.INFO['END'] - record.POS
+    else:
+        return (record.end + 1) - record.POS
+
+
 def _get_coverage(reader, region, gqx, min_val, perc, sample):
     """
     This function gets coverage from a region
@@ -117,14 +131,15 @@ def _get_coverage(reader, region, gqx, min_val, perc, sample):
 
     covs = []
     for record in records:
+        length  = _get_record_length(record)
         if gqx:
-            val = _calc_gqx(record, sample)
+            val = [_calc_gqx(record, sample)]*length
         else:
             if hasattr(record.genotype(sample), 'DP'):
-                val = record.genotype(sample)['DP']
+                val = [record.genotype(sample)['DP']]*length
             else:
-                val = 0
-        covs.append(val)
+                val = []
+        covs += val
 
     covs = map(float, covs)
     if len(covs) == 0:
