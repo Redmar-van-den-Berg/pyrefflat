@@ -108,9 +108,9 @@ def _get_record_length(record):
     """
 
     if 'END' in record.INFO:
-        return record.INFO['END'] - record.POS
+        return (record.INFO['END'] + 1) - record.POS
     else:
-        return (record.end + 1) - record.POS
+        return record.end - record.start
 
 
 def _get_coverage(reader, region, gqx, min_val, perc, sample):
@@ -131,11 +131,11 @@ def _get_coverage(reader, region, gqx, min_val, perc, sample):
 
     covs = []
     for record in records:
-        length  = _get_record_length(record)
+        length = _get_record_length(record)
         if gqx:
             val = [_calc_gqx(record, sample)]*length
         else:
-            if hasattr(record.genotype(sample), 'DP'):
+            if hasattr(record.genotype(sample).data, 'DP'):
                 val = [record.genotype(sample)['DP']]*length
             else:
                 val = []
