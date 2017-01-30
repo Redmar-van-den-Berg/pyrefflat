@@ -15,6 +15,12 @@ def proc():
     p.process()
     return p
 
+@pytest.fixture(scope="module")
+def myot():
+    m = RefFlatProcessor("test/data/myot.refFlat")
+    m.process()
+    return m
+
 class TestGene():
 
     def test_gene_type(self, proc):
@@ -79,3 +85,9 @@ class TestTranscript():
         g = proc.genes.values()[0]
         t = g.transcripts[0]
         assert isinstance(t.to_dict(), dict)
+
+    def test_cds_exons(self, myot):
+        m_t = myot.transcripts.values()[0]
+        cds_ex = m_t.cds_exons
+        assert len(cds_ex) == 9
+        assert cds_ex[0].number == 2

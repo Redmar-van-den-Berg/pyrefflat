@@ -90,6 +90,16 @@ class Transcript(object):
             self.exons = [exon]
 
     @property
+    def cds_exons(self):
+        """
+        Return those exons which lie within the cds
+        Also returns those partially inside the cds
+        :return:
+        """
+        return [x for x in self.exons if x.stop >= self.cds_start and
+                x.start <= self.cds_end]
+
+    @property
     def line(self):
         line = []
         d = self.to_dict()

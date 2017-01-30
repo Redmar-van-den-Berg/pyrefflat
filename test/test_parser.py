@@ -84,6 +84,11 @@ def proc():
     p = RefFlatProcessor("test/data/midi.refFlat")
     return p
 
+@pytest.fixture(scope="module")
+def mrecord():
+    m = Reader(filename="test/data/myot.refFlat")
+    return next(m)
+
 
 class TestRecord():
 
@@ -200,6 +205,11 @@ class TestRecord():
             d[c] = "blah"
             with pytest.raises(ValueError):
                 _ = Record.fromdict(d)
+
+    def test_cds_exons(self, mrecord):
+        cds_ex = mrecord.cds_exons
+        assert len(cds_ex) == 9
+        assert cds_ex[0].number == 2
 
 
 class TestExon():

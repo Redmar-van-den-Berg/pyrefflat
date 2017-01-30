@@ -114,6 +114,16 @@ class Record(object):
     def exons(self):
         return Exon.fromrecord(self)
 
+    @property
+    def cds_exons(self):
+        """
+        Return those exons which lie within the cds
+        Also returns those partially inside the cds
+        :return:
+        """
+        return [x for x in self.exons if x.stop >= self.cdsStart and
+                x.start <= self.cdsEnd]
+
     def to_dict(self):
         d = {}
         d["geneName"] = self.gene
@@ -163,19 +173,6 @@ class Record(object):
             if not isinstance(items[nc], int):
                 raise ValueError("Item {nc} must be an integer".format(nc=nc))
 
-        #
-        #
-        # line = [str(items[x]) for x in COLUMNS if x in normal_columns]
-        # line = "\t".join(line)
-        # for c in NUMERIC_LIST_COLUMNS:
-        #     if isinstance(items[c], list) and all([isinstance(x, int) for x in items[c]]):
-        #         line += "\t" + ",".join(map(str, items[c])) + ","
-        #     elif isinstance(items[c], basestring) and items[c].endswith(","):
-        #         line += "\t" + items[c]
-        #     elif isinstance(items[c], basestring) and not items[c].endswith(","):
-        #         line += "\t" + items[c] + ","
-        #     else:
-        #         raise ValueError
         r = Record(**items)
         return r
 
@@ -193,12 +190,11 @@ class Record(object):
             items[nc] = int(items[nc])
         for lnc in NUMERIC_LIST_COLUMNS:
             if not items[lnc].endswith(','):
-                raise ValueError("Malformed refFlat file! Value {lnc} must end in a comma".format(lnc))
+                raise ValueError("Malformed refFlat file! Value {lnc} must end in a comma".format(lnc=lnc))
 
             it = items[lnc].split(',')
             it.pop()
             items[lnc] = [int(x) for x in it]
-
 
         r = Record(**items)
         return r

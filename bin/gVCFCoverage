@@ -46,6 +46,7 @@ def regions_from_refrecord(record, im, um, cds=False):
         right_utr_start = record.cdsEnd
 
     regions = []
+    cds_exons_numbers = [x.number for x in record.cds_exons]
 
     for i, (s, e) in enumerate(zip(record.exonStarts, record.exonEnds)):
         if not cds:
@@ -62,18 +63,20 @@ def regions_from_refrecord(record, im, um, cds=False):
                 start = s - im
                 end = right_utr_end
         else:
-            if record.n_exons == 1:
+            if (i+1) not in cds_exons_numbers:  # skip this exon if not in cds
+                continue
+            if record.n_exons == 1:  # single-exon transcripts
                 start = left_utr_end
                 end = right_utr_start
-            elif i == 0:
+            elif s <= left_utr_end:  # partial exon before cds
                 start = left_utr_end
                 end = e + im
-            elif i < (record.n_exons - 1):
+            elif e >= right_utr_end:  # partial exon behind cds
                 start = s - im
-                end = e + im
+                end = right_utr_end
             else:
                 start = s - im
-                end = right_utr_start
+                end = e + im
 
         start -= 1  # bed start counting from 0
         if record.strand == "+":
