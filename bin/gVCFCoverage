@@ -95,6 +95,8 @@ def _calc_gqx(record, sample):
     :param sample: string containing the sample
     return: float of gqx (or gq if QUAL doesnt exist)
     """
+    if not hasattr(record.genotype(sample).data, "GQ"):
+        return 0
     gq = float(record.genotype(sample)['GQ'])
     if record.QUAL is not None:
         qual = float(record.QUAL)
